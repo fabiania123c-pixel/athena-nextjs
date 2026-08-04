@@ -1035,7 +1035,7 @@ export default function AthenaChat() {
     return -1;
   })();
 
-  const headerStyle: React.CSSProperties = { padding: "16px 24px", borderBottom: "1px solid rgba(201,169,110,0.2)", display: "flex", alignItems: "center", gap: "14px", background: "#0a1628", flexShrink: 0 };
+  const headerStyle: React.CSSProperties = { padding: "20px 24px 16px", borderBottom: "1px solid rgba(201,169,110,0.2)", display: "flex", alignItems: "center", gap: "14px", background: "#0a1628", flexShrink: 0 };
   const avatarStyle: React.CSSProperties = { width: "40px", height: "40px", borderRadius: "50%", background: "#c9a96e", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a1628", fontWeight: "bold", fontSize: "16px", fontFamily: "Georgia, serif", flexShrink: 0 };
   const footerStyle: React.CSSProperties = { textAlign: "center", marginTop: "8px", fontSize: "11px", color: "rgba(245,240,232,0.3)", letterSpacing: "0.05em" };
 
@@ -1128,7 +1128,7 @@ export default function AthenaChat() {
           <div style={{ ...footerStyle, letterSpacing: "0.16em" }}>ATHENEUM · WORLD TRADE CENTER · QUITO</div>
         </div>
 
-        <style>{`@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }`}</style>
+        <style>{`@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} } html, body { margin: 0; padding: 0; }`}</style>
       </div>
     );
   }
