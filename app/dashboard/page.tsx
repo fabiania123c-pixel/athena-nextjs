@@ -114,6 +114,7 @@ export default function Dashboard() {
   const [funnelEvents, setFunnelEvents] = useState<FunnelEvent[]>([]);
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [activeTab, setActiveTab] = useState("command");
   const [filtroEstado, setFiltroEstado] = useState("pendiente");
@@ -1021,75 +1022,154 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {reservasFiltradas.map((r) => (
-                <div key={r.id} style={{
-                  background: NAVY, border: "1px solid rgba(201,169,110,0.15)",
-                  borderRadius: "14px", padding: "16px 18px",
-                  display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap",
-                }}>
-                  <div style={{ minWidth: "90px" }}>
-                    <div style={{ color: GOLD, fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "700" }}>
-                      {r.hora || "—"}
-                    </div>
-                    <div style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", marginTop: "2px" }}>
-                      {r.fecha || "—"}
-                    </div>
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: "180px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
-                      <span style={{ color: "#f5f0e8", fontWeight: "600", fontSize: "14px" }}>{r.nombre || "Sin nombre"}</span>
-                      <span style={{
-                        background: "rgba(201,169,110,0.1)", color: GOLD,
-                        fontSize: "10px", padding: "2px 8px", borderRadius: "20px",
-                      }}>{getFuenteLabel(r.fuente)}</span>
-                    </div>
-                    <div style={{ display: "flex", gap: "12px", color: "rgba(245,240,232,0.4)", fontSize: "11px", flexWrap: "wrap" }}>
-                      <span>👥 {r.personas || "—"} personas</span>
-                      {r.tipo && <span>🎯 {r.tipo}</span>}
-                      {r.preferencia && <span>📍 {r.preferencia}</span>}
-                    </div>
-                    {r.nota && (
-                      <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11px", marginTop: "6px", fontStyle: "italic" }}>
-                        {r.nota}
+            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: "300px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                {reservasFiltradas.map((r) => (
+                  <div key={r.id} onClick={() => setSelectedReserva(r)} style={{
+                    background: selectedReserva?.id === r.id ? "rgba(201,169,110,0.08)" : NAVY,
+                    border: selectedReserva?.id === r.id ? `1px solid ${GOLD}` : "1px solid rgba(201,169,110,0.15)",
+                    borderRadius: "14px", padding: "16px 18px",
+                    display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap",
+                    cursor: "pointer", transition: "all 0.2s",
+                  }}>
+                    <div style={{ minWidth: "90px" }}>
+                      <div style={{ color: GOLD, fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "700" }}>
+                        {r.hora || "—"}
                       </div>
-                    )}
+                      <div style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", marginTop: "2px" }}>
+                        {r.fecha || "—"}
+                      </div>
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: "180px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
+                        <span style={{ color: "#f5f0e8", fontWeight: "600", fontSize: "14px" }}>{r.nombre || "Sin nombre"}</span>
+                        <span style={{
+                          background: "rgba(201,169,110,0.1)", color: GOLD,
+                          fontSize: "10px", padding: "2px 8px", borderRadius: "20px",
+                        }}>{getFuenteLabel(r.fuente)}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "12px", color: "rgba(245,240,232,0.4)", fontSize: "11px", flexWrap: "wrap" }}>
+                        <span>👥 {r.personas || "—"} personas</span>
+                        {r.tipo && <span>🎯 {r.tipo}</span>}
+                        {r.preferencia && <span>📍 {r.preferencia}</span>}
+                      </div>
+                      {r.nota && (
+                        <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11px", marginTop: "6px", fontStyle: "italic" }}>
+                          {r.nota}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{
+                        background: getEstadoReservaBadge(r.estado).bg,
+                        color: getEstadoReservaBadge(r.estado).color,
+                        fontSize: "10px", padding: "3px 10px", borderRadius: "20px",
+                        fontWeight: "600",
+                      }}>
+                        {r.estado?.toUpperCase()}
+                      </div>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        {["confirmada", "llego", "cancelada", "no_show"].map((estado) => (
+                          <button
+                            key={estado}
+                            onClick={() => updateReservaEstado(r.id, estado)}
+                            disabled={updatingReserva === r.id}
+                            title={estado}
+                            style={{
+                              width: "26px", height: "26px", borderRadius: "6px", border: "none",
+                              background: r.estado === estado ? getEstadoReservaBadge(estado).bg : "rgba(255,255,255,0.05)",
+                              color: r.estado === estado ? getEstadoReservaBadge(estado).color : "rgba(245,240,232,0.3)",
+                              fontSize: "11px", cursor: "pointer",
+                            }}
+                          >
+                            {estado === "confirmada" ? "✓" : estado === "llego" ? "→" : estado === "cancelada" ? "✕" : "∅"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {reservasFiltradas.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "50px", color: "rgba(245,240,232,0.3)", fontSize: "14px", background: NAVY, borderRadius: "16px", border: "1px solid rgba(201,169,110,0.1)" }}>
+                    No hay reservas con este estado
+                  </div>
+                )}
+              </div>
+
+              {selectedReserva && (
+                <div style={{
+                  width: "100%", maxWidth: "380px", background: NAVY,
+                  border: "1px solid rgba(201,169,110,0.2)", borderRadius: "16px",
+                  padding: "20px", display: "flex", flexDirection: "column", gap: "18px",
+                  maxHeight: "80vh", overflowY: "auto",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ color: GOLD, fontFamily: "Georgia, serif", fontSize: "17px", fontWeight: "600" }}>
+                      {selectedReserva.nombre || "Sin nombre"}
+                    </div>
+                    <button
+                      onClick={() => setSelectedReserva(null)}
+                      style={{ background: "transparent", border: "none", color: "rgba(245,240,232,0.4)", cursor: "pointer", fontSize: "18px" }}
+                    >✕</button>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
-                    <div style={{
-                      background: getEstadoReservaBadge(r.estado).bg,
-                      color: getEstadoReservaBadge(r.estado).color,
-                      fontSize: "10px", padding: "3px 10px", borderRadius: "20px",
-                      fontWeight: "600",
-                    }}>
-                      {r.estado?.toUpperCase()}
-                    </div>
-                    <div style={{ display: "flex", gap: "4px" }}>
-                      {["confirmada", "llego", "cancelada", "no_show"].map((estado) => (
-                        <button
-                          key={estado}
-                          onClick={() => updateReservaEstado(r.id, estado)}
-                          disabled={updatingReserva === r.id}
-                          title={estado}
-                          style={{
-                            width: "26px", height: "26px", borderRadius: "6px", border: "none",
-                            background: r.estado === estado ? getEstadoReservaBadge(estado).bg : "rgba(255,255,255,0.05)",
-                            color: r.estado === estado ? getEstadoReservaBadge(estado).color : "rgba(245,240,232,0.3)",
-                            fontSize: "11px", cursor: "pointer",
-                          }}
-                        >
-                          {estado === "confirmada" ? "✓" : estado === "llego" ? "→" : estado === "cancelada" ? "✕" : "∅"}
-                        </button>
-                      ))}
-                    </div>
+                  <div style={{
+                    background: getEstadoReservaBadge(selectedReserva.estado).bg,
+                    color: getEstadoReservaBadge(selectedReserva.estado).color,
+                    fontSize: "11px", padding: "5px 12px", borderRadius: "20px",
+                    fontWeight: "600", alignSelf: "flex-start",
+                  }}>
+                    {selectedReserva.estado?.toUpperCase()}
                   </div>
-                </div>
-              ))}
-              {reservasFiltradas.length === 0 && (
-                <div style={{ textAlign: "center", padding: "50px", color: "rgba(245,240,232,0.3)", fontSize: "14px", background: NAVY, borderRadius: "16px", border: "1px solid rgba(201,169,110,0.1)" }}>
-                  No hay reservas con este estado
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {[
+                      { label: "Fecha", value: selectedReserva.fecha },
+                      { label: "Hora", value: selectedReserva.hora },
+                      { label: "Personas", value: selectedReserva.personas ? String(selectedReserva.personas) : "" },
+                      { label: "Tipo", value: selectedReserva.tipo },
+                      { label: "Preferencia", value: selectedReserva.preferencia },
+                      { label: "Fuente", value: getFuenteLabel(selectedReserva.fuente) },
+                      { label: "Registrado", value: selectedReserva.created_at ? new Date(selectedReserva.created_at).toLocaleString("es-EC") : "" },
+                    ].map((item, idx) => (
+                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                        <span style={{ color: "rgba(245,240,232,0.4)" }}>{item.label}</span>
+                        <span style={{ color: "#f5f0e8", fontWeight: "500", maxWidth: "190px", textAlign: "right" }}>
+                          {item.value || "—"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectedReserva.nota && (
+                    <div style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)", borderRadius: "10px", padding: "12px 14px" }}>
+                      <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11px", letterSpacing: "0.08em", marginBottom: "6px" }}>NOTA</div>
+                      <div style={{ color: "#f5f0e8", fontSize: "13px", lineHeight: "1.5" }}>{selectedReserva.nota}</div>
+                    </div>
+                  )}
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    {["confirmada", "llego", "cancelada", "no_show"].map((estado) => (
+                      <button
+                        key={estado}
+                        onClick={() => {
+                          updateReservaEstado(selectedReserva.id, estado);
+                          setSelectedReserva({ ...selectedReserva, estado });
+                        }}
+                        disabled={updatingReserva === selectedReserva.id}
+                        style={{
+                          padding: "10px", borderRadius: "10px", border: "none",
+                          background: selectedReserva.estado === estado ? getEstadoReservaBadge(estado).bg : "rgba(255,255,255,0.05)",
+                          color: selectedReserva.estado === estado ? getEstadoReservaBadge(estado).color : "rgba(245,240,232,0.4)",
+                          fontSize: "10px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.05em",
+                        }}
+                      >
+                        {estado.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
