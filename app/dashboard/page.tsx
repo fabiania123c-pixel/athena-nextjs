@@ -1190,7 +1190,7 @@ export default function Dashboard() {
                     labelStyle={{ color: "#f5f0e8", fontSize: "12px" }}
                     itemStyle={{ color: GOLD, fontSize: "12px" }}
                     cursor={{ fill: "rgba(201,169,110,0.08)" }}
-                    formatter={(value: number) => [value, ""]}
+                    formatter={(value) => [String(value), ""]}
                   />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                     {funnelChart.map((entry, index) => (
