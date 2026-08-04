@@ -1035,7 +1035,7 @@ export default function AthenaChat() {
     return -1;
   })();
 
-  const headerStyle: React.CSSProperties = { padding: "20px 24px 16px", borderBottom: "1px solid rgba(201,169,110,0.2)", display: "flex", alignItems: "center", gap: "14px", background: "#0a1628", flexShrink: 0 };
+  const headerStyle: React.CSSProperties = { padding: "24px 24px 16px", borderBottom: "1px solid rgba(201,169,110,0.2)", display: "flex", alignItems: "center", gap: "14px", background: "#0a1628", flexShrink: 0 };
   const avatarStyle: React.CSSProperties = { width: "40px", height: "40px", borderRadius: "50%", background: "#c9a96e", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a1628", fontWeight: "bold", fontSize: "16px", fontFamily: "Georgia, serif", flexShrink: 0 };
   const footerStyle: React.CSSProperties = { textAlign: "center", marginTop: "8px", fontSize: "11px", color: "rgba(245,240,232,0.3)", letterSpacing: "0.05em" };
 
@@ -1044,8 +1044,7 @@ export default function AthenaChat() {
 
   if (pantalla === "inicio") {
     return (
-      <div style={{ width: "100vw", height: "100vh", background: "radial-gradient(ellipse at top, #14202f 0%, #080c12 60%)", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, rgba(201,169,110,0.6), transparent)" }} />
+      <div style={{ width: "100vw", minHeight: "100vh", background: "radial-gradient(ellipse at top, #14202f 0%, #080c12 60%)", display: "flex", flexDirection: "column", position: "relative" }}>
         <div style={headerStyle}>
           <div style={avatarStyle}>A</div>
           <div>
