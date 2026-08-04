@@ -69,6 +69,28 @@ interface Insight {
   detalle: string;
 }
 
+interface FunnelEvent {
+  id: string;
+  conversacion_id: string;
+  evento: string;
+  created_at: string;
+}
+
+interface Reserva {
+  id: string;
+  conversacion_id: string;
+  nombre: string;
+  fecha: string;
+  hora: string;
+  personas: number;
+  tipo: string;
+  preferencia: string;
+  nota: string;
+  fuente: string;
+  estado: string;
+  created_at: string;
+}
+
 const normalizeIndustria = (ind: string) => {
   const lower = ind.toLowerCase().trim();
   if (["tech", "tecnología", "tecnologia", "software", "ia", "inteligencia artificial", "automatizacion", "automatización", "marketing digital"].some(t => lower.includes(t))) return "Tecnología";
@@ -89,12 +111,16 @@ export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [funnelEvents, setFunnelEvents] = useState<FunnelEvent[]>([]);
+  const [reservas, setReservas] = useState<Reserva[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [activeTab, setActiveTab] = useState("command");
   const [filtroEstado, setFiltroEstado] = useState("pendiente");
+  const [filtroReserva, setFiltroReserva] = useState("todas");
   const [loadingMensajes, setLoadingMensajes] = useState(false);
   const [updatingEstado, setUpdatingEstado] = useState<string | null>(null);
+  const [updatingReserva, setUpdatingReserva] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -127,9 +153,21 @@ export default function Dashboard() {
       .select("*")
       .order("fecha_creacion", { ascending: false });
 
+    const { data: funnelData } = await supabase
+      .from("funnel_events")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const { data: reservasData } = await supabase
+      .from("reservas")
+      .select("*")
+      .order("created_at", { ascending: false });
+
     if (leadsData) setLeads(leadsData);
     if (convData) setConversaciones(convData);
     if (reviewsData) setReviews(reviewsData);
+    if (funnelData) setFunnelEvents(funnelData);
+    if (reservasData) setReservas(reservasData);
   };
 
   const fetchMensajes = async (conversacionId: string) => {
@@ -158,6 +196,13 @@ export default function Dashboard() {
       setSelectedLead({ ...selectedLead, estado, fecha_contactado: updateData.fecha_contactado || selectedLead.fecha_contactado });
     }
     setUpdatingEstado(null);
+  };
+
+  const updateReservaEstado = async (reservaId: string, estado: string) => {
+    setUpdatingReserva(reservaId);
+    await supabase.from("reservas").update({ estado }).eq("id", reservaId);
+    await fetchData();
+    setUpdatingReserva(null);
   };
 
   const toggleUsado = async (reviewId: string, usadoActual: boolean) => {
@@ -254,7 +299,6 @@ export default function Dashboard() {
     ? Math.round(totalPipeline / leads.length)
     : 0;
 
-  // Velocidad de respuesta del equipo
   const leadsConTiempos = leads.filter(l => l.fecha_creacion && l.fecha_contactado);
   const tiempoRespuestaPromedio = leadsConTiempos.length > 0
     ? leadsConTiempos.reduce((sum, l) => {
@@ -319,6 +363,48 @@ export default function Dashboard() {
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
+
+  // Funnel KPIs
+  const totalAperturas = funnelEvents.filter(e => e.evento === "apertura").length;
+  const totalReservaRapida = funnelEvents.filter(e => e.evento === "reserva_rapida").length;
+  const totalCotizacion = funnelEvents.filter(e => e.evento === "cotizacion").length;
+  const totalMasInfo = funnelEvents.filter(e => e.evento === "mas_info").length;
+  const pctReservaRapida = totalAperturas > 0 ? Math.round((totalReservaRapida / totalAperturas) * 100) : 0;
+  const pctCotizacion = totalAperturas > 0 ? Math.round((totalCotizacion / totalAperturas) * 100) : 0;
+  const pctMasInfo = totalAperturas > 0 ? Math.round((totalMasInfo / totalAperturas) * 100) : 0;
+  const funnelChart = [
+    { name: "Abrieron Athena", value: totalAperturas, color: GOLD },
+    { name: "Reserva Rápida", value: totalReservaRapida, color: "#4ade80" },
+    { name: "Cotización", value: totalCotizacion, color: "#60a5fa" },
+    { name: "Más Info", value: totalMasInfo, color: "#c084fc" },
+  ];
+
+  // Reservas
+  const reservasFiltradas = filtroReserva === "todas" ? reservas : reservas.filter(r => r.estado === filtroReserva);
+  const hoyStr = new Date().toISOString().split("T")[0];
+  const reservasHoy = reservas.filter(r => r.created_at && r.created_at.startsWith(hoyStr));
+  const reservasPendientes = reservas.filter(r => r.estado === "pendiente");
+  const reservasConfirmadas = reservas.filter(r => r.estado === "confirmada");
+  const personasTotal = reservasFiltradas.reduce((sum, r) => sum + (r.personas || 0), 0);
+
+  const getEstadoReservaBadge = (estado: string) => {
+    const styles: Record<string, { bg: string; color: string }> = {
+      pendiente: { bg: "rgba(251,191,36,0.15)", color: "#fbbf24" },
+      confirmada: { bg: "rgba(74,222,128,0.15)", color: "#4ade80" },
+      llego: { bg: "rgba(96,165,250,0.15)", color: "#60a5fa" },
+      cancelada: { bg: "rgba(248,113,113,0.15)", color: "#f87171" },
+      no_show: { bg: "rgba(156,163,175,0.15)", color: "#9ca3af" },
+    };
+    return styles[estado] || styles.pendiente;
+  };
+
+  const getFuenteLabel = (fuente: string) => {
+    const labels: Record<string, string> = {
+      reserva_rapida: "Reserva Rápida",
+      cotizacion: "Cotización",
+    };
+    return labels[fuente] || fuente;
+  };
 
   const COLORS = [GOLD, "#d4b483", "#b8924a", "#8a6d35", "#5c4820"];
 
@@ -436,8 +522,9 @@ export default function Dashboard() {
           {[
             { key: "command", label: "COMMAND" },
             { key: "leads", label: "LEADS" },
+            { key: "reservas", label: "RESERVAS" },
             { key: "inteligencia", label: "INTELIGENCIA" },
-            { key: "athena", label: "ATHENA" },
+            { key: "funnel", label: "FUNNEL" },
             { key: "reviews", label: "REVIEWS" },
           ].map((tab) => (
             <button
@@ -575,6 +662,34 @@ export default function Dashboard() {
                   }}
                 >
                   VER LEADS →
+                </button>
+              </div>
+            )}
+
+            {reservasPendientes.length > 0 && (
+              <div style={{
+                background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.3)",
+                borderRadius: "16px", padding: "18px 22px",
+                display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap",
+              }}>
+                <div style={{ fontSize: "26px" }}>📖</div>
+                <div style={{ flex: 1, minWidth: "200px" }}>
+                  <div style={{ color: "#60a5fa", fontWeight: "700", fontSize: "15px" }}>
+                    {reservasPendientes.length} reserva{reservasPendientes.length > 1 ? "s" : ""} pendiente{reservasPendientes.length > 1 ? "s" : ""} de confirmar
+                  </div>
+                  <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "13px", marginTop: "4px" }}>
+                    {reservasPendientes.slice(0, 3).map(r => r.nombre).join(", ")}{reservasPendientes.length > 3 ? "..." : ""}
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setActiveTab("reservas"); setFiltroReserva("pendiente"); }}
+                  style={{
+                    padding: "10px 18px", borderRadius: "10px",
+                    background: "#60a5fa", border: "none", color: NAVY,
+                    fontSize: "12px", fontWeight: "700", cursor: "pointer",
+                  }}
+                >
+                  VER RESERVAS →
                 </button>
               </div>
             )}
@@ -853,6 +968,134 @@ export default function Dashboard() {
           </div>
         )}
 
+        {activeTab === "reservas" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
+              {[
+                { label: "Reservas Hoy", value: reservasHoy.length, sub: "Registradas hoy", icon: "📅", color: GOLD },
+                { label: "Pendientes", value: reservasPendientes.length, sub: "Por confirmar", icon: "⏳", color: "#fbbf24" },
+                { label: "Confirmadas", value: reservasConfirmadas.length, sub: "Ya confirmadas por el equipo", icon: "✅", color: "#4ade80" },
+                { label: "Total Personas", value: personasTotal, sub: "En la vista actual", icon: "👥", color: "#60a5fa" },
+              ].map((kpi, idx) => (
+                <div key={idx} style={{
+                  background: NAVY, border: "1px solid rgba(201,169,110,0.15)",
+                  borderRadius: "16px", padding: "20px",
+                }}>
+                  <div style={{ fontSize: "22px", marginBottom: "10px" }}>{kpi.icon}</div>
+                  <div style={{ color: kpi.color, fontSize: "28px", fontFamily: "Georgia, serif", fontWeight: "700" }}>
+                    {kpi.value}
+                  </div>
+                  <div style={{ color: "#f5f0e8", fontSize: "13px", fontWeight: "600", marginTop: "8px" }}>{kpi.label}</div>
+                  <div style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", marginTop: "4px" }}>{kpi.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+              <div style={{ color: GOLD, fontSize: "13px", fontWeight: "600", letterSpacing: "0.08em" }}>
+                LIBRO DE RESERVAS · {reservasFiltradas.length}
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {[
+                  { key: "pendiente", label: "PENDIENTES" },
+                  { key: "confirmada", label: "CONFIRMADAS" },
+                  { key: "llego", label: "LLEGARON" },
+                  { key: "cancelada", label: "CANCELADAS" },
+                  { key: "no_show", label: "NO-SHOW" },
+                  { key: "todas", label: "TODAS" },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setFiltroReserva(f.key)}
+                    style={{
+                      padding: "6px 12px", borderRadius: "20px", border: "none",
+                      background: filtroReserva === f.key ? GOLD : "rgba(255,255,255,0.05)",
+                      color: filtroReserva === f.key ? NAVY : "rgba(245,240,232,0.4)",
+                      fontSize: "10px", fontWeight: "600", cursor: "pointer", letterSpacing: "0.06em",
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {reservasFiltradas.map((r) => (
+                <div key={r.id} style={{
+                  background: NAVY, border: "1px solid rgba(201,169,110,0.15)",
+                  borderRadius: "14px", padding: "16px 18px",
+                  display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap",
+                }}>
+                  <div style={{ minWidth: "90px" }}>
+                    <div style={{ color: GOLD, fontFamily: "Georgia, serif", fontSize: "15px", fontWeight: "700" }}>
+                      {r.hora || "—"}
+                    </div>
+                    <div style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", marginTop: "2px" }}>
+                      {r.fecha || "—"}
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: "180px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
+                      <span style={{ color: "#f5f0e8", fontWeight: "600", fontSize: "14px" }}>{r.nombre || "Sin nombre"}</span>
+                      <span style={{
+                        background: "rgba(201,169,110,0.1)", color: GOLD,
+                        fontSize: "10px", padding: "2px 8px", borderRadius: "20px",
+                      }}>{getFuenteLabel(r.fuente)}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px", color: "rgba(245,240,232,0.4)", fontSize: "11px", flexWrap: "wrap" }}>
+                      <span>👥 {r.personas || "—"} personas</span>
+                      {r.tipo && <span>🎯 {r.tipo}</span>}
+                      {r.preferencia && <span>📍 {r.preferencia}</span>}
+                    </div>
+                    {r.nota && (
+                      <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11px", marginTop: "6px", fontStyle: "italic" }}>
+                        {r.nota}
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
+                    <div style={{
+                      background: getEstadoReservaBadge(r.estado).bg,
+                      color: getEstadoReservaBadge(r.estado).color,
+                      fontSize: "10px", padding: "3px 10px", borderRadius: "20px",
+                      fontWeight: "600",
+                    }}>
+                      {r.estado?.toUpperCase()}
+                    </div>
+                    <div style={{ display: "flex", gap: "4px" }}>
+                      {["confirmada", "llego", "cancelada", "no_show"].map((estado) => (
+                        <button
+                          key={estado}
+                          onClick={() => updateReservaEstado(r.id, estado)}
+                          disabled={updatingReserva === r.id}
+                          title={estado}
+                          style={{
+                            width: "26px", height: "26px", borderRadius: "6px", border: "none",
+                            background: r.estado === estado ? getEstadoReservaBadge(estado).bg : "rgba(255,255,255,0.05)",
+                            color: r.estado === estado ? getEstadoReservaBadge(estado).color : "rgba(245,240,232,0.3)",
+                            fontSize: "11px", cursor: "pointer",
+                          }}
+                        >
+                          {estado === "confirmada" ? "✓" : estado === "llego" ? "→" : estado === "cancelada" ? "✕" : "∅"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {reservasFiltradas.length === 0 && (
+                <div style={{ textAlign: "center", padding: "50px", color: "rgba(245,240,232,0.3)", fontSize: "14px", background: NAVY, borderRadius: "16px", border: "1px solid rgba(201,169,110,0.1)" }}>
+                  No hay reservas con este estado
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {activeTab === "inteligencia" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "14px" }}>
@@ -893,23 +1136,21 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === "athena" && (
+        {activeTab === "funnel" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "14px" }}>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
               {[
-                { label: "Conversaciones totales", value: conversaciones.length, sub: "Personas que hablaron con Athena", icon: "💬", color: GOLD },
-                { label: "Leads capturados", value: leads.length, sub: "Conversaciones que llegaron al cierre", icon: "👤", color: "#4ade80" },
-                { label: "Tasa de conversión", value: `${tasaConversion}%`, sub: "Leads cerrados sobre capturados", icon: "📈", color: "#60a5fa" },
-                { label: "Pipeline generado", value: `$${totalPipeline.toLocaleString()}`, sub: "Valor total capturado por Athena", icon: "💰", color: "#c084fc" },
-                { label: "Valor cerrado", value: `$${valorCerrado.toLocaleString()}`, sub: "Negocios confirmados", icon: "✅", color: "#4ade80" },
-                { label: "Tiempo de respuesta", value: formatTiempo(tiempoRespuestaPromedio), sub: "Promedio del equipo a leads", icon: "⚡", color: GOLD },
+                { label: "Abrieron Athena", value: totalAperturas, sub: "Personas que entraron al link", color: GOLD },
+                { label: "Reserva Rápida", value: totalReservaRapida, sub: `${pctReservaRapida}% de las aperturas`, color: "#4ade80" },
+                { label: "Cotización", value: totalCotizacion, sub: `${pctCotizacion}% de las aperturas`, color: "#60a5fa" },
+                { label: "Más Información", value: totalMasInfo, sub: `${pctMasInfo}% de las aperturas`, color: "#c084fc" },
               ].map((kpi, idx) => (
                 <div key={idx} style={{
                   background: NAVY, border: "1px solid rgba(201,169,110,0.15)",
                   borderRadius: "16px", padding: "24px",
                 }}>
-                  <div style={{ fontSize: "24px", marginBottom: "10px" }}>{kpi.icon}</div>
-                  <div style={{ color: kpi.color, fontSize: "30px", fontFamily: "Georgia, serif", fontWeight: "700" }}>
+                  <div style={{ color: kpi.color, fontSize: "36px", fontFamily: "Georgia, serif", fontWeight: "700" }}>
                     {kpi.value}
                   </div>
                   <div style={{ color: "#f5f0e8", fontSize: "13px", fontWeight: "600", marginTop: "8px" }}>{kpi.label}</div>
@@ -917,21 +1158,54 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-            <div style={{
-              background: "rgba(201,169,110,0.05)", border: "1px solid rgba(201,169,110,0.2)",
-              borderRadius: "16px", padding: "24px",
-            }}>
-              <div style={{ color: GOLD, fontFamily: "Georgia, serif", fontSize: "17px", fontWeight: "600", marginBottom: "8px" }}>
-                El valor real de Athena
-              </div>
-              <div style={{ color: "rgba(245,240,232,0.6)", fontSize: "13px", lineHeight: "1.8" }}>
-                Athena ha tenido <strong style={{ color: "#f5f0e8" }}>{conversaciones.length} conversaciones</strong> y
-                capturado <strong style={{ color: "#f5f0e8" }}>{leads.length} leads calificados</strong> con un
-                pipeline total de <strong style={{ color: GOLD }}>${totalPipeline.toLocaleString()}</strong>.
-                Cada lead fue atendido en segundos, cotizado en tiempo real, y notificado al equipo por WhatsApp —
-                sin intervención humana. Esto es lo que Athena hace por Atheneum las 24 horas del día.
+
+            <div style={{ background: NAVY, border: "1px solid rgba(201,169,110,0.15)", borderRadius: "16px", padding: "28px" }}>
+              <div style={{ color: GOLD, fontSize: "13px", fontWeight: "600", letterSpacing: "0.08em", marginBottom: "24px" }}>EMBUDO DE CONVERSIÓN</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {funnelChart.map((item, idx) => {
+                  const pct = totalAperturas > 0 ? Math.round((item.value / totalAperturas) * 100) : 0;
+                  return (
+                    <div key={idx}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                        <span style={{ color: "rgba(245,240,232,0.7)", fontSize: "13px" }}>{item.name}</span>
+                        <span style={{ color: item.color, fontSize: "13px", fontWeight: "700" }}>{item.value} ({pct}%)</span>
+                      </div>
+                      <div style={{ height: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "6px", overflow: "hidden" }}>
+                        <div style={{ width: `${pct}%`, height: "100%", background: item.color, borderRadius: "6px", transition: "width 0.6s ease" }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            <div style={{ background: NAVY, border: "1px solid rgba(201,169,110,0.15)", borderRadius: "16px", padding: "20px" }}>
+              <div style={{ color: GOLD, fontSize: "13px", fontWeight: "600", letterSpacing: "0.08em", marginBottom: "16px" }}>DISTRIBUCIÓN POR OPCIÓN</div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={funnelChart}>
+                  <XAxis dataKey="name" tick={{ fill: "rgba(245,240,232,0.4)", fontSize: 11 }} />
+                  <YAxis tick={{ fill: "rgba(245,240,232,0.4)", fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{ background: NAVY, border: `1px solid ${GOLD}`, borderRadius: "8px" }}
+                    labelStyle={{ color: "#f5f0e8", fontSize: "12px" }}
+                    itemStyle={{ color: GOLD, fontSize: "12px" }}
+                    cursor={{ fill: "rgba(201,169,110,0.08)" }}
+                    formatter={(value: number) => [value, ""]}
+                  />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {funnelChart.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {totalAperturas === 0 && (
+              <div style={{ textAlign: "center", padding: "60px", color: "rgba(245,240,232,0.3)", fontSize: "14px", background: NAVY, borderRadius: "16px", border: "1px solid rgba(201,169,110,0.1)" }}>
+                Aún no hay datos de funnel. Los eventos se registran cuando los usuarios interactúan con Athena.
+              </div>
+            )}
           </div>
         )}
 
