@@ -656,8 +656,7 @@ export default function AthenaChat() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
   useEffect(() => {
-    const enWizard = ["fecha", "hora", "personas", "nombre"].includes(cotizacionStep);
-    if (!enWizard) {
+    if (cotizacionStep === "resultado") {
       cotizacionEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [cotizacionMessages, cotizacionStep]);
