@@ -655,7 +655,12 @@ export default function AthenaChat() {
   const cotizacionEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  useEffect(() => { cotizacionEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [cotizacionMessages, cotizacionStep]);
+  useEffect(() => {
+    const enWizard = ["fecha", "hora", "personas", "nombre"].includes(cotizacionStep);
+    if (!enWizard) {
+      cotizacionEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [cotizacionMessages, cotizacionStep]);
   useEffect(() => { registrarEvento(conversacionId, "apertura"); }, [conversacionId]);
 
   const handleReservaRapida = () => {
@@ -1051,7 +1056,7 @@ export default function AthenaChat() {
             <div style={{ color: "#c9a96e", fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "600", letterSpacing: "0.05em" }}>Atheneum</div>
             <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
               <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#4ade80", display: "inline-block", boxShadow: "0 0 6px rgba(74,222,128,0.6)" }} />
-              Concierge Atheneum · En línea
+              Asistente Virtual · En línea
             </div>
           </div>
         </div>
@@ -1097,7 +1102,7 @@ export default function AthenaChat() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ color: "#e3c98d", fontSize: "14.5px", fontWeight: "700", fontFamily: "sans-serif", marginBottom: "2px", letterSpacing: "0.01em" }}>Cotización</div>
-                <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11.5px", fontFamily: "sans-serif" }}>Precio exacto al instante</div>
+                <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11.5px", fontFamily: "sans-serif" }}>Cotiza al instante tus eventos</div>
               </div>
               <div style={{ color: "#e3c98d", fontSize: "18px", fontFamily: "sans-serif", opacity: 0.8 }}>→</div>
             </button>
@@ -1111,8 +1116,8 @@ export default function AthenaChat() {
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ color: "#f5f0e8", fontSize: "14.5px", fontWeight: "700", fontFamily: "sans-serif", marginBottom: "2px", letterSpacing: "0.01em" }}>Más Información</div>
-                <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11.5px", fontFamily: "sans-serif" }}>Espacios, eventos y experiencias</div>
+                <div style={{ color: "#f5f0e8", fontSize: "14.5px", fontWeight: "700", fontFamily: "sans-serif", marginBottom: "2px", letterSpacing: "0.01em" }}>Preguntas y Respuestas</div>
+                <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11.5px", fontFamily: "sans-serif" }}>Tus dudas respondidas al instante</div>
               </div>
               <div style={{ color: "rgba(245,240,232,0.45)", fontSize: "18px", fontFamily: "sans-serif" }}>→</div>
             </button>
@@ -1363,7 +1368,7 @@ export default function AthenaChat() {
           <div style={{ color: "#c9a96e", fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "600", letterSpacing: "0.05em" }}>Atheneum</div>
           <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
             <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-            Concierge Atheneum · En línea
+            Asistente Virtual · En línea
           </div>
         </div>
       </div>
