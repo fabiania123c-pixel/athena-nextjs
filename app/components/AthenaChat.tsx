@@ -1040,7 +1040,8 @@ export default function AthenaChat() {
   })();
 
   const headerStyle: React.CSSProperties = { padding: "24px 24px 16px", borderBottom: "1px solid rgba(201,169,110,0.2)", display: "flex", alignItems: "center", gap: "14px", background: "#0a1628", flexShrink: 0 };
-  const avatarStyle: React.CSSProperties = { width: "40px", height: "40px", borderRadius: "50%", background: "#c9a96e", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a1628", fontWeight: "bold", fontSize: "16px", fontFamily: "Georgia, serif", flexShrink: 0 };
+  const avatarStyle: React.CSSProperties = { width: "40px", height: "40px", borderRadius: "50%", background: "#c9a96e", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a1628", fontWeight: "bold", fontSize: "16px", fontFamily: "Georgia, serif", flexShrink: 0, overflow: "hidden" };
+  const logoImg = <img src="/atheneum-logo.jpg" alt="Atheneum" style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
   const footerStyle: React.CSSProperties = { textAlign: "center", marginTop: "8px", fontSize: "11px", color: "rgba(245,240,232,0.3)", letterSpacing: "0.05em" };
 
   const HORA_CHIPS = ["08:00", "09:00", "12:00", "13:00", "14:00", "19:00", "20:00", "21:00"];
@@ -1056,7 +1057,7 @@ export default function AthenaChat() {
         display: "flex", flexDirection: "column", position: "relative",
       }}>
         <div style={headerStyle}>
-          <div style={avatarStyle}>A</div>
+          <div style={avatarStyle}>{logoImg}</div>
           <div>
             <div style={{ color: "#c9a96e", fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "600", letterSpacing: "0.05em" }}>Atheneum</div>
             <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
@@ -1074,10 +1075,10 @@ export default function AthenaChat() {
               background: "linear-gradient(150deg, #e3c98d, #a67c3d)",
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#0a1628", fontWeight: "bold", fontSize: "26px", fontFamily: "Georgia, serif",
-              margin: "0 auto 18px",
+              margin: "0 auto 18px", overflow: "hidden",
               boxShadow: "0 0 0 1px rgba(245,240,232,0.4), 0 0 0 6px rgba(201,169,110,0.08), 0 0 30px rgba(201,169,110,0.28), 0 8px 20px rgba(0,0,0,0.45)",
               border: "1px solid rgba(245,240,232,0.5)",
-            }}>A</div>
+            }}>{logoImg}</div>
             <div style={{ color: "#f5f0e8", fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "600", letterSpacing: "0.01em" }}>Bienvenido a Atheneum</div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", margin: "12px 0" }}>
               <div style={{ width: "24px", height: "1px", background: "linear-gradient(90deg, transparent, rgba(201,169,110,0.7))" }} />
@@ -1148,7 +1149,7 @@ export default function AthenaChat() {
       <div style={{ width: "100vw", height: "100vh", background: "#080c12", display: "flex", flexDirection: "column" }}>
         <div style={headerStyle}>
           <button onClick={() => setPantalla("inicio")} style={{ background: "transparent", border: "none", color: "rgba(245,240,232,0.4)", cursor: "pointer", fontSize: "20px", padding: "0 8px 0 0", fontFamily: "sans-serif" }}>←</button>
-          <div style={avatarStyle}>A</div>
+          <div style={avatarStyle}>{logoImg}</div>
           <div>
             <div style={{ color: "#c9a96e", fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "600", letterSpacing: "0.05em" }}>Reserva Rápida</div>
             <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "12px", marginTop: "2px" }}>Atheneum</div>
@@ -1280,7 +1281,7 @@ export default function AthenaChat() {
             }}
             style={{ background: "transparent", border: "none", color: "rgba(245,240,232,0.4)", cursor: "pointer", fontSize: "20px", padding: "0 8px 0 0", fontFamily: "sans-serif" }}
           >←</button>
-          <div style={avatarStyle}>A</div>
+          <div style={avatarStyle}>{logoImg}</div>
           <div>
             <div style={{ color: "#c9a96e", fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "600", letterSpacing: "0.05em" }}>Atheneum · Cotización</div>
             <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
@@ -1368,7 +1369,7 @@ export default function AthenaChat() {
     <div style={{ width: "100vw", height: "100vh", background: "#080c12", display: "flex", flexDirection: "column" }}>
       <div style={headerStyle}>
         <button onClick={() => setPantalla("inicio")} style={{ background: "transparent", border: "none", color: "rgba(245,240,232,0.4)", cursor: "pointer", fontSize: "20px", padding: "0 8px 0 0", fontFamily: "sans-serif" }}>←</button>
-        <div style={avatarStyle}>A</div>
+        <div style={avatarStyle}>{logoImg}</div>
         <div>
           <div style={{ color: "#c9a96e", fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "600", letterSpacing: "0.05em" }}>Atheneum</div>
           <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
