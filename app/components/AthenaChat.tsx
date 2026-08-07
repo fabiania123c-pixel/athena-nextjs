@@ -1048,7 +1048,13 @@ export default function AthenaChat() {
 
   if (pantalla === "inicio") {
     return (
-      <div style={{ width: "100vw", minHeight: "100vh", background: "radial-gradient(ellipse at top, #14202f 0%, #080c12 60%)", display: "flex", flexDirection: "column", position: "relative" }}>
+      <div style={{
+        width: "100vw", minHeight: "100vh",
+        backgroundImage: "linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.94)), url('/atheneum-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex", flexDirection: "column", position: "relative",
+      }}>
         <div style={headerStyle}>
           <div style={avatarStyle}>A</div>
           <div>
