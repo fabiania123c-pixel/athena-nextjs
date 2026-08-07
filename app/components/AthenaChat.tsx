@@ -1050,7 +1050,7 @@ export default function AthenaChat() {
     return (
       <div style={{
         width: "100vw", minHeight: "100vh",
-        backgroundImage: "linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.94)), url('/atheneum-bg.jpg')",
+        backgroundImage: "linear-gradient(rgba(8,12,18,0.68), rgba(8,12,18,0.78)), url('/atheneum-bg.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         display: "flex", flexDirection: "column", position: "relative",
