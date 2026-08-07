@@ -49,7 +49,7 @@ interface ReservaData {
 
 type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva";
 type CotizacionStep = "fecha" | "hora" | "personas" | "nombre" | "menu" | "resultado";
-type TipoComida = "desayuno" | "lunch" | null;
+type TipoComida = "desayuno" | "lunch" | "cena" | null;
 
 const WA_NUMBER = "593980435843";
 
@@ -118,6 +118,21 @@ const PRECIOS = {
         "Crumble de manzana — helado de vainilla · crocante de avellana",
         "Bebidas — a elegir:",
         "Vino blanco · vino tinto",
+      ],
+    },
+    { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
+  ],
+  cena: [
+    {
+      tier: "Menú Corporativo — $35 + IVA", precio: 35, descripcion: "Empanadas, ceviche, plato fuerte, postre y copa de vino",
+      detalle: [
+        "Centro — Tabla de empanadas: mix verde, morocho, viento",
+        "Entrada — Mini ceviche tatemado: emulsión de mariscos · camarón · chips",
+        "Fuerte — a elegir:",
+        "Lomo & polenta — lomo fino de res · demi-glace · polenta de papa · vegetales al grill",
+        "Pesca blanca — papas salteadas · mix verde · reducción de finas hierbas",
+        "Postre — Mousse de limón",
+        "Bebida — Soft a elegir + 1 copa de vino de la casa",
       ],
     },
     { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
@@ -360,9 +375,108 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
+      <div
+        style={{
+          background: "rgba(201,169,110,0.1)",
+          border: "1.5px solid #c9a96e",
+          borderRadius: "18px",
+          padding: "18px 20px",
+        }}
+      >
+        <div style={{
+          display: "inline-block", background: "#c9a96e", color: "#0a1628",
+          fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em",
+          padding: "4px 12px", borderRadius: "20px", marginBottom: "12px",
+        }}>
+          MENÚ CORPORATIVO
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "14px" }}>
+
+          <div style={{ display: "flex", gap: "8px", fontSize: "12.5px", lineHeight: "1.5" }}>
+            <span style={{ color: "#c9a96e", fontWeight: "700", flexShrink: 0, minWidth: "78px" }}>Centro</span>
+            <span style={{ color: "rgba(245,240,232,0.7)" }}>Tabla de empanadas</span>
+          </div>
+          {menuExpandido && (
+            <div style={{ marginLeft: "86px", color: "rgba(245,240,232,0.4)", fontSize: "11px", lineHeight: "1.5", paddingBottom: "4px" }}>
+              Mix: verde, morocho, viento
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "8px", fontSize: "12.5px", lineHeight: "1.5" }}>
+            <span style={{ color: "#c9a96e", fontWeight: "700", flexShrink: 0, minWidth: "78px" }}>Entrada</span>
+            <span style={{ color: "rgba(245,240,232,0.7)" }}>Mini ceviche tatemado</span>
+          </div>
+          {menuExpandido && (
+            <div style={{ marginLeft: "86px", color: "rgba(245,240,232,0.4)", fontSize: "11px", lineHeight: "1.5", paddingBottom: "4px" }}>
+              Emulsión de mariscos · camarón · chips
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "8px", fontSize: "12.5px", lineHeight: "1.5" }}>
+            <span style={{ color: "#c9a96e", fontWeight: "700", flexShrink: 0, minWidth: "78px" }}>Fuerte</span>
+            <span style={{ color: "rgba(245,240,232,0.7)" }}>Lomo & polenta <em style={{ color: "rgba(245,240,232,0.4)", fontStyle: "italic" }}>o</em> pesca blanca <em style={{ color: "rgba(245,240,232,0.4)", fontStyle: "italic" }}>— a elegir</em></span>
+          </div>
+          {menuExpandido && (
+            <div style={{ marginLeft: "86px", display: "flex", flexDirection: "column", gap: "6px", paddingBottom: "4px" }}>
+              <div>
+                <span style={{ color: "rgba(245,240,232,0.55)", fontSize: "11px", fontWeight: "700" }}>Lomo & polenta — </span>
+                <span style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px" }}>lomo fino de res · demi-glace · polenta de papa · vegetales al grill</span>
+              </div>
+              <div>
+                <span style={{ color: "rgba(245,240,232,0.55)", fontSize: "11px", fontWeight: "700" }}>Pesca blanca — </span>
+                <span style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px" }}>papas salteadas · mix verde · reducción de finas hierbas</span>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "8px", fontSize: "12.5px", lineHeight: "1.5" }}>
+            <span style={{ color: "#c9a96e", fontWeight: "700", flexShrink: 0, minWidth: "78px" }}>Postre</span>
+            <span style={{ color: "rgba(245,240,232,0.7)" }}>Mousse de limón</span>
+          </div>
+
+          <div style={{ display: "flex", gap: "8px", fontSize: "12.5px", lineHeight: "1.5" }}>
+            <span style={{ color: "#c9a96e", fontWeight: "700", flexShrink: 0, minWidth: "78px" }}>Bebida</span>
+            <span style={{ color: "rgba(245,240,232,0.7)" }}>Soft <em style={{ color: "rgba(245,240,232,0.4)", fontStyle: "italic" }}>a elegir</em> + 1 copa de vino de la casa</span>
+          </div>
+          {menuExpandido && (
+            <div style={{ marginLeft: "86px", color: "rgba(245,240,232,0.4)", fontSize: "11px", lineHeight: "1.5" }}>
+              Agua natural · agua mineral · selección de refrescos<br />
+              Vino de la casa — 1 copa a elegir
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={() => setMenuExpandido((v) => !v)}
+          style={{
+            background: "transparent", border: "none", color: "rgba(201,169,110,0.7)",
+            fontSize: "11.5px", fontFamily: "Georgia, serif", fontStyle: "italic",
+            cursor: "pointer", padding: "0 0 14px", display: "block",
+          }}
+        >
+          {menuExpandido ? "Ocultar opciones del menú ↑" : "Ver opciones del menú ↓"}
+        </button>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", fontStyle: "italic" }}>Más IVA y 10% de servicio</span>
+          <button
+            onClick={() => onSelect("cena", 0, 35)}
+            style={{
+              background: "#c9a96e", border: "none", borderRadius: "10px",
+              padding: "10px 18px", color: "#0a1628", fontSize: "14px",
+              fontWeight: "700", fontFamily: "Georgia, serif", cursor: "pointer",
+            }}
+          >
+            $35 · Elegir →
+          </button>
+        </div>
+      </div>
+
       {secciones.map(({ key, label }) => (
         <div key={key}>
           <div style={{ color: "#c9a96e", fontSize: "11px", fontWeight: "700", letterSpacing: "0.2em", marginBottom: "10px" }}>{label.toUpperCase()}</div>
+
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {PRECIOS[key!].map((item: any, idx) => {
               const esPersonalizar = item.precio === null;
@@ -438,7 +552,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
   const servicio = subtotal ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
   const iva = subtotal ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
   const total = subtotal ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
-  const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch" };
+  const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
   return (
     <div>
       <div style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.3)", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -646,7 +760,7 @@ export default function AthenaChat() {
     const servicio = subtotal ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
     const iva = subtotal ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
     const total = subtotal ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
 
     let cuerpo = "";
     if (datos.textoPersonalizado) {
@@ -697,7 +811,7 @@ export default function AthenaChat() {
     const servicio = Math.round(subtotal * SERVICIO * 100) / 100;
     const iva = Math.round((subtotal + servicio) * IVA * 100) / 100;
     const total = Math.round((subtotal + servicio + iva) * 100) / 100;
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
     const hoy = new Date();
     const fechaEmision = hoy.toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" });
     const numero = `COT-${hoy.getFullYear()}${String(hoy.getMonth() + 1).padStart(2, "0")}${String(hoy.getDate()).padStart(2, "0")}-${String(hoy.getHours()).padStart(2, "0")}${String(hoy.getMinutes()).padStart(2, "0")}`;
@@ -859,7 +973,7 @@ export default function AthenaChat() {
   };
 
   const handleMasPreguntas = () => {
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
     const item = tipoSeleccionado ? PRECIOS[tipoSeleccionado][tierSeleccionado] : null;
     const contexto = tipoSeleccionado
       ? `Hola, estuve viendo una cotización de ${tipoLabel[tipoSeleccionado]} — ${item?.tier}${precioSeleccionado ? ` a $${precioSeleccionado} por persona` : ""} para ${cotizacionData.personas || ""} personas el ${cotizacionData.fecha || cotizacionData._rawDatos || ""}. Tengo algunas preguntas adicionales.`
