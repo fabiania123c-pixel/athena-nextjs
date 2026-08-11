@@ -139,8 +139,22 @@ const PRECIOS = {
   ],
 };
 
-const IVA = 0.12;
+const IVA = 0.15;
 const SERVICIO = 0.10;
+
+function loadImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    fetch(url)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      })
+      .catch(reject);
+  });
+}
 
 function generateId() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -588,7 +602,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
                 <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${servicio}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>IVA (12%)</span>
+                <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>IVA (15%)</span>
                 <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${iva}</span>
               </div>
             </>
@@ -776,7 +790,7 @@ export default function AthenaChat() {
         `Personas:        ${personas}\n` +
         `Subtotal:        $${subtotal}\n` +
         `Servicio (10%):  $${servicio}\n` +
-        `IVA (12%):       $${iva}\n` +
+        `IVA (15%):       $${iva}\n` +
         `———————————————\n` +
         `TOTAL:           $${total}`;
     }
@@ -803,7 +817,7 @@ export default function AthenaChat() {
     });
   };
 
-  const handleDescargarPDF = () => {
+  const handleDescargarPDF = async () => {
     const datos = cotizacionData;
     const item = tipoSeleccionado ? PRECIOS[tipoSeleccionado][tierSeleccionado] : null;
     const personas = Number(datos.personas) || 0;
@@ -818,15 +832,22 @@ export default function AthenaChat() {
 
     const doc = new jsPDF();
 
+    try {
+      const logoBase64 = await loadImageAsBase64("/atheneum-logo.jpg");
+      doc.addImage(logoBase64, "JPEG", 14, 8, 20, 20);
+    } catch (e) {
+      console.error("No se pudo cargar el logo para el PDF:", e);
+    }
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
+    doc.setFontSize(18);
     doc.setTextColor(10, 22, 40);
-    doc.text("ATHENEUM", 14, 20);
+    doc.text("ATHENEUM", 38, 18);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(120, 120, 120);
-    doc.text("Quito, Ecuador | IG @atheneum.io | WEB www.clubatheneum.ec", 14, 26);
+    doc.text("Quito, Ecuador | IG @atheneum.io | WEB www.clubatheneum.ec", 38, 24);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
@@ -935,7 +956,7 @@ export default function AthenaChat() {
       doc.text(`$${subtotal.toFixed(2)}`, 196, finalY, { align: "right" });
       doc.text("Servicio (10%):", 150, finalY + 6, { align: "right" });
       doc.text(`$${servicio.toFixed(2)}`, 196, finalY + 6, { align: "right" });
-      doc.text("IVA (12%):", 150, finalY + 12, { align: "right" });
+      doc.text("IVA (15%):", 150, finalY + 12, { align: "right" });
       doc.text(`$${iva.toFixed(2)}`, 196, finalY + 12, { align: "right" });
 
       doc.setDrawColor(201, 169, 110);
