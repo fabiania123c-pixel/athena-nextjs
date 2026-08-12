@@ -49,7 +49,7 @@ interface ReservaData {
 
 type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva";
 type CotizacionStep = "fecha" | "hora" | "personas" | "nombre" | "menu" | "resultado";
-type TipoComida = "desayuno" | "lunch" | "cena" | null;
+type TipoComida = "desayuno" | "lunch" | "cena" | "bocaditos" | null;
 
 const WA_NUMBER = "593980435843";
 
@@ -181,6 +181,11 @@ const PRECIOS = {
     },
     { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
   ],
+  bocaditos: [
+    { tier: "Esencial — $18 + IVA", precio: 18, descripcion: "6 bocaditos · 4 variedades a elegir · 5 salados + 1 dulce · Ideal para reuniones y coffee meetings" },
+    { tier: "Signature — $25 + IVA", precio: 25, descripcion: "8 bocaditos · 6 variedades a elegir · 7 salados + 1 dulce · Ideal para cócteles y networking" },
+    { tier: "Atheneum — $35 + IVA", precio: 35, descripcion: "10 bocaditos · 8 variedades a elegir · 8 salados + 2 dulces · Ideal para eventos premium" },
+  ],
 };
 
 const IVA = 0.15;
@@ -193,6 +198,32 @@ const ADICIONALES_DESAYUNO = [
   { nombre: "Huevos a elección", precio: 3.5 },
   { nombre: "Porción de aguacate", precio: 3.5 },
   { nombre: "Tocino crocante", precio: 3.5 },
+];
+
+const BOCADITOS_SALADOS = [
+  "Ceviche Jipijapa de camarón",
+  "Ceviche Atheneum de camarón",
+  "Locro de papa trufado",
+  "Maduro en salprieta",
+  "Mini ensalada de burrata",
+  "Canasta verde rellena de aguachile de camarón",
+  "Croquetas de pollo con alioli de pimiento morrón",
+  "Tostadas de cherry con aceite balsámico",
+  "Empanadas de morocho",
+  "Causa crocante de camarón olivado",
+  "Tostadas de pan blanco con tartar de salmón",
+  "Carpaccio de mango con aguacate, lechugas y mojo de cebolla",
+  "Papa rellena de tocino y queso crema gratinado en base de alioli de albahaca",
+  "Ensalada de sandía a la plancha con queso en reducción de vinagre balsámico",
+  "Ensalada caprese",
+  "Croquetas de hongos y cerdo",
+  "Calamares tempura",
+];
+
+const BOCADITOS_DULCES = [
+  "Mini cheesecake de frutos rojos",
+  "Brownie de chocolate con ganache",
+  "Mini tartaleta de limón",
 ];
 
 function loadImageAsBase64(url: string): Promise<string> {
@@ -435,9 +466,11 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
   const [textoPersonalizado, setTextoPersonalizado] = React.useState("");
   const [menuExpandido, setMenuExpandido] = React.useState(false);
   const [detalleAbierto, setDetalleAbierto] = React.useState<{ tipo: TipoComida; idx: number } | null>(null);
+  const [catalogoBocaditosAbierto, setCatalogoBocaditosAbierto] = React.useState(false);
   const secciones: { key: TipoComida; label: string }[] = [
     { key: "desayuno", label: "Desayuno" },
     { key: "lunch", label: "Lunch" },
+    { key: "bocaditos", label: "Bocaditos" },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -605,6 +638,37 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
               );
             })}
           </div>
+
+          {key === "bocaditos" && (
+            <div style={{ marginTop: "10px" }}>
+              <button
+                onClick={() => setCatalogoBocaditosAbierto((v) => !v)}
+                style={{ background: "transparent", border: "none", color: "rgba(201,169,110,0.7)", fontSize: "11.5px", fontFamily: "Georgia, serif", fontStyle: "italic", cursor: "pointer", padding: 0 }}
+              >
+                {catalogoBocaditosAbierto ? "Ocultar catálogo de sabores ↑" : "Ver catálogo de sabores ↓"}
+              </button>
+              {catalogoBocaditosAbierto && (
+                <div style={{ marginTop: "10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(201,169,110,0.2)", borderRadius: "14px", padding: "16px 18px", display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <div>
+                    <div style={{ color: "rgba(201,169,110,0.75)", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", marginBottom: "8px" }}>BOCADITOS SALADOS</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {BOCADITOS_SALADOS.map((s, i) => (
+                        <div key={i} style={{ color: "rgba(245,240,232,0.55)", fontSize: "11.5px", lineHeight: "1.5" }}>· {s}</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: "rgba(201,169,110,0.75)", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", marginBottom: "8px" }}>BOCADITOS DULCES</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {BOCADITOS_DULCES.map((s, i) => (
+                        <div key={i} style={{ color: "rgba(245,240,232,0.55)", fontSize: "11.5px", lineHeight: "1.5" }}>· {s}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -624,7 +688,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
   const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
   const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
   const total = subtotal !== null ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
-  const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
+  const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
   return (
     <div>
       <div style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.3)", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -873,7 +937,7 @@ export default function AthenaChat() {
     const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
     const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
     const total = subtotal !== null ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
     const nombresAdicionales = adicionalesSeleccionados.map((idx) => ADICIONALES_DESAYUNO[idx].nombre).join(", ");
 
     let cuerpo = "";
@@ -932,7 +996,7 @@ export default function AthenaChat() {
     const servicio = Math.round(subtotal * SERVICIO * 100) / 100;
     const iva = Math.round((subtotal + servicio) * IVA * 100) / 100;
     const total = Math.round((subtotal + servicio + iva) * 100) / 100;
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
     const nombresAdicionales = adicionalesSeleccionados.map((idx) => ADICIONALES_DESAYUNO[idx].nombre).join(", ");
     const hoy = new Date();
     const fechaEmision = hoy.toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" });
@@ -1112,7 +1176,7 @@ export default function AthenaChat() {
   };
 
   const handleMasPreguntas = () => {
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
     const item = tipoSeleccionado ? PRECIOS[tipoSeleccionado][tierSeleccionado] : null;
     const contexto = tipoSeleccionado
       ? `Hola, estuve viendo una cotización de ${tipoLabel[tipoSeleccionado]} — ${item?.tier}${precioSeleccionado ? ` a $${precioSeleccionado} por persona` : ""} para ${cotizacionData.personas || ""} personas el ${cotizacionData.fecha || cotizacionData._rawDatos || ""}. Tengo algunas preguntas adicionales.`
