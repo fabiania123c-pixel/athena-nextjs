@@ -47,7 +47,7 @@ interface ReservaData {
   nota: string;
 }
 
-type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva";
+type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva" | "galeria";
 type CotizacionStep = "fecha" | "hora" | "personas" | "nombre" | "menu" | "resultado";
 type TipoComida = "desayuno" | "lunch" | "cena" | "bocaditos" | null;
 
@@ -224,6 +224,24 @@ const BOCADITOS_DULCES = [
   "Mini cheesecake de frutos rojos",
   "Brownie de chocolate con ganache",
   "Mini tartaleta de limón",
+];
+
+const GALERIA = [
+  { src: "/galeria/01-pergola-noche.jpg", label: "Pérgola Lounge" },
+  { src: "/galeria/02-ceviche.jpg", label: "Ceviche Atheneum" },
+  { src: "/galeria/03-salon-privado.jpg", label: "Salón Privado" },
+  { src: "/galeria/04-salon-chimenea.jpg", label: "Salón Principal" },
+  { src: "/galeria/05-bar.jpg", label: "Bar Glenmorangie" },
+  { src: "/galeria/06-brindis.jpg", label: "Un brindis en Atheneum" },
+  { src: "/galeria/07-salmon.jpg", label: "Salmón, risotto de albahaca" },
+  { src: "/galeria/08-pergola-mesa.jpg", label: "Pérgola Lounge" },
+  { src: "/galeria/09-comedor.jpg", label: "Salón Principal" },
+  { src: "/galeria/10-vinos.jpg", label: "Selección de vinos" },
+  { src: "/galeria/11-salon-privado-2.jpg", label: "Salón Privado" },
+  { src: "/galeria/12-empanadas.jpg", label: "Empanadas de la casa" },
+  { src: "/galeria/13-pergola-noche-2.jpg", label: "Pérgola Lounge" },
+  { src: "/galeria/14-burger.jpg", label: "Atheneum Burger" },
+  { src: "/galeria/15-pulpo.jpg", label: "Pulpo a la parrilla" },
 ];
 
 function loadImageAsBase64(url: string): Promise<string> {
@@ -811,6 +829,8 @@ export default function AthenaChat() {
 
   const RESERVA_STEPS = ["preferencia", "fecha", "hora", "personas", "nombre", "nota"] as const;
   const [reservaStepIdx, setReservaStepIdx] = useState(0);
+  const [galeriaIdx, setGaleriaIdx] = useState(0);
+  const galeriaContainerRef = useRef<HTMLDivElement>(null);
   const [reservaData, setReservaData] = useState<ReservaData>({ preferencia: "", fecha: "", hora: "", personas: 2, nombre: "", nota: "" });
   const [preferenciaEsOtro, setPreferenciaEsOtro] = useState(false);
 
@@ -854,6 +874,11 @@ export default function AthenaChat() {
       { role: "user", content: "hola", hidden: true },
       { role: "assistant", content: "Hola, soy Athena. ¿En qué puedo ayudarte hoy?", opciones: ["Sala privada", "Restaurante", "Evento", "Cómo llegar"] },
     ]);
+  };
+
+  const handleGaleria = () => {
+    registrarEvento(conversacionId, "galeria");
+    setPantalla("galeria");
   };
 
   const reservaCanNext = () => {
@@ -1328,6 +1353,18 @@ export default function AthenaChat() {
               </div>
               <div style={{ color: "rgba(245,240,232,0.45)", fontSize: "18px", fontFamily: "sans-serif" }}>→</div>
             </button>
+
+            <button onClick={handleGaleria} style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.08), rgba(255,255,255,0.02))", border: "1px solid rgba(201,169,110,0.3)", borderRadius: "14px", padding: "14px 18px", display: "flex", alignItems: "center", gap: "14px", cursor: "pointer", transition: "all 0.25s", textAlign: "left", width: "100%", boxShadow: "0 6px 16px rgba(0,0,0,0.3)" }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(201,169,110,0.55)"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,169,110,0.3)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ position: "relative", width: "46px", height: "38px", flexShrink: 0 }}>
+                <img src="/galeria/03-salon-privado.jpg" alt="" style={{ position: "absolute", top: 0, left: "10px", width: "34px", height: "34px", borderRadius: "8px", objectFit: "cover", border: "1.5px solid rgba(10,22,40,0.9)", boxShadow: "0 3px 8px rgba(0,0,0,0.4)", transform: "rotate(6deg)" }} />
+                <img src="/galeria/01-pergola-noche.jpg" alt="" style={{ position: "absolute", top: "2px", left: "4px", width: "34px", height: "34px", borderRadius: "8px", objectFit: "cover", border: "1.5px solid rgba(10,22,40,0.9)", boxShadow: "0 3px 8px rgba(0,0,0,0.4)", transform: "rotate(-4deg)" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: "#e3c98d", fontSize: "14.5px", fontWeight: "700", fontFamily: "sans-serif", marginBottom: "2px", letterSpacing: "0.01em" }}>Conoce el lugar</div>
+                <div style={{ color: "rgba(245,240,232,0.5)", fontSize: "11.5px", fontFamily: "sans-serif" }}>Un vistazo a Atheneum</div>
+              </div>
+              <div style={{ color: "#e3c98d", fontSize: "18px", fontFamily: "sans-serif", opacity: 0.8 }}>→</div>
+            </button>
           </div>
 
           <a href="https://www.google.com/maps/place/ATHENEUM+QUITO/@-0.2049153,-78.4873373,17z/data=!3m1!4b1!4m6!3m5!1s0x91d59b00754f2265:0x4b86cf22b9655876!8m2!3d-0.2049153!4d-78.4847624!16s%2Fg%2F11xd17y9fh?entry=tts" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(201,169,110,0.55)", fontSize: "11.5px", fontFamily: "Georgia, serif", fontStyle: "italic", textDecoration: "none", transition: "color 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(201,169,110,0.9)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(201,169,110,0.55)"; }}>
@@ -1343,6 +1380,137 @@ export default function AthenaChat() {
       </div>
     );
   }
+  if (pantalla === "galeria") {
+    return (
+      <div style={{ width: "100vw", height: "100vh", background: "#000", position: "relative", overflow: "hidden" }}>
+        <button
+          onClick={() => setPantalla("inicio")}
+          style={{
+            position: "absolute", top: "20px", left: "20px", zIndex: 20,
+            width: "38px", height: "38px", borderRadius: "50%",
+            background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)",
+            border: "1px solid rgba(255,255,255,0.25)", color: "#f5f0e8",
+            fontSize: "18px", cursor: "pointer", display: "flex",
+            alignItems: "center", justifyContent: "center",
+          }}
+        >
+          ←
+        </button>
+
+        <div style={{
+          position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)", zIndex: 20,
+          color: "#f5f0e8", fontFamily: "Georgia, serif", fontSize: "13px",
+          letterSpacing: "0.1em", opacity: 0.85, textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+        }}>
+          ATHENEUM
+        </div>
+
+        <div style={{
+          position: "absolute", top: "20px", right: "20px", zIndex: 20,
+          display: "flex", flexDirection: "column", gap: "5px",
+        }}>
+          {GALERIA.map((_, i) => (
+            <div key={i} style={{
+              width: "3px", height: i === galeriaIdx ? "18px" : "10px",
+              borderRadius: "2px",
+              background: i === galeriaIdx ? "#c9a96e" : "rgba(255,255,255,0.3)",
+              transition: "all 0.3s ease",
+            }} />
+          ))}
+        </div>
+
+        <div
+          ref={galeriaContainerRef}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            const idx = Math.round(el.scrollTop / el.clientHeight);
+            if (idx !== galeriaIdx) setGaleriaIdx(idx);
+          }}
+          style={{
+            width: "100%", height: "100%", overflowY: "scroll",
+            scrollSnapType: "y mandatory", scrollBehavior: "smooth",
+          }}
+        >
+          {GALERIA.map((foto, i) => (
+            <div
+              key={i}
+              style={{
+                width: "100%", height: "100vh", scrollSnapAlign: "start",
+                position: "relative", display: "flex", alignItems: "flex-end",
+                justifyContent: "center", overflow: "hidden",
+              }}
+            >
+              <img
+                src={foto.src}
+                alt={foto.label}
+                style={{
+                  position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+                  objectFit: "cover",
+                  animation: i === galeriaIdx ? "kenburns 6s ease-out forwards" : "none",
+                }}
+              />
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.65) 100%)",
+              }} />
+              <div style={{
+                position: "relative", zIndex: 5, paddingBottom: "70px",
+                color: "#f5f0e8", fontFamily: "Georgia, serif", fontSize: "17px",
+                letterSpacing: "0.03em", textShadow: "0 2px 10px rgba(0,0,0,0.7)",
+              }}>
+                {foto.label}
+              </div>
+            </div>
+          ))}
+
+          <div style={{
+            width: "100%", height: "100vh", scrollSnapAlign: "start",
+            background: "radial-gradient(ellipse at center, #14202f 0%, #080c12 70%)",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            gap: "24px", padding: "0 32px",
+          }}>
+            <div style={{
+              width: "56px", height: "56px", borderRadius: "50%",
+              background: "linear-gradient(150deg, #e3c98d, #a67c3d)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden", boxShadow: "0 0 0 1px rgba(245,240,232,0.4), 0 0 24px rgba(201,169,110,0.25)",
+            }}>
+              {logoImg}
+            </div>
+            <div style={{ color: "#f5f0e8", fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: 600, textAlign: "center" }}>
+              Vive la experiencia
+            </div>
+            <button
+              onClick={handleReservaRapida}
+              style={{
+                background: "#c9a96e", border: "none", borderRadius: "12px",
+                padding: "14px 32px", color: "#0a1628", fontSize: "13px",
+                fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer",
+                fontFamily: "sans-serif",
+              }}
+            >
+              RESERVAR AHORA
+            </button>
+            <button
+              onClick={() => setPantalla("inicio")}
+              style={{ background: "transparent", border: "none", color: "rgba(245,240,232,0.4)", fontSize: "12px", cursor: "pointer", fontFamily: "Georgia, serif", fontStyle: "italic" }}
+            >
+              Volver al inicio
+            </button>
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes kenburns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.08); }
+          }
+          div[style*="overflowY: scroll"]::-webkit-scrollbar { display: none; }
+        `}</style>
+      </div>
+    );
+  }
+
   if (pantalla === "reserva") {
     const step = RESERVA_STEPS[reservaStepIdx];
     const done = reservaStepIdx >= RESERVA_STEPS.length;
