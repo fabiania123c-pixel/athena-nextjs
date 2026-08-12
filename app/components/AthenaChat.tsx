@@ -148,6 +148,22 @@ const PRECIOS = {
         "Vino blanco · vino tinto",
       ],
     },
+    {
+      tier: "Menú 3 — $25 + IVA", precio: 25, descripcion: "Por persona",
+      detalle: [
+        "Entrada — a elegir:",
+        "Corviches con encocado de camarón — emulsión de tomate de árbol, con curtido tradicional",
+        "Ceviche andino — base de aguacate y chimichurri, fondo de vegetales, choclo desgranado salteado, chochos, palmito, mix de picadillo y quinua crocante",
+        "Plato fuerte — a elegir:",
+        "Pollo al grill — salsa demiglace oriental, milhojas de papa y vegetales salteados",
+        "Bondiola de cerdo — reducción de cocción de cerdo, puré de fréjol aromatizado con trufa, mesclum y kale rostizada",
+        "Postre — a elegir:",
+        "Mousse de frutos rojos — deconstrucción de crumble y suspiros",
+        "Cheesecake de maracuyá — deconstrucción de crumble y suspiros",
+        "Centro de mesa:",
+        "Pan de bienvenida · arroz a las finas hierbas cuchareable",
+      ],
+    },
     { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
   ],
   cena: [
@@ -603,7 +619,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
   const totalAdicionalesPorPersona = tipo === "desayuno"
     ? adicionalesSeleccionados.reduce((sum, idx) => sum + ADICIONALES_DESAYUNO[idx].precio, 0)
     : 0;
-  const subtotalAdicionales = totalAdicionalesPorPersona * personas;
+  const subtotalAdicionales = totalAdicionalesPorPersona;
   const subtotal = subtotalBase !== null ? subtotalBase + subtotalAdicionales : null;
   const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
   const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
@@ -659,7 +675,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
 
         {tipo === "desayuno" && precio !== null && (
           <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.2)", borderRadius: "12px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ color: "#c9a96e", fontSize: "11px", letterSpacing: "0.1em", fontWeight: "700", marginBottom: "2px" }}>ADICIONALES · $3.50 c/u por persona</div>
+            <div style={{ color: "#c9a96e", fontSize: "11px", letterSpacing: "0.1em", fontWeight: "700", marginBottom: "2px" }}>ADICIONALES · $3.50 c/u</div>
             {ADICIONALES_DESAYUNO.map((ad, idx) => {
               const activo = adicionalesSeleccionados.includes(idx);
               return (
@@ -851,7 +867,7 @@ export default function AthenaChat() {
     const totalAdicionalesPorPersona = tipoSeleccionado === "desayuno"
       ? adicionalesSeleccionados.reduce((sum, idx) => sum + ADICIONALES_DESAYUNO[idx].precio, 0)
       : 0;
-    const subtotalAdicionales = totalAdicionalesPorPersona * personas;
+    const subtotalAdicionales = totalAdicionalesPorPersona;
     const subtotalBase = precioSeleccionado && personas ? precioSeleccionado * personas : null;
     const subtotal = subtotalBase !== null ? subtotalBase + subtotalAdicionales : null;
     const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
@@ -910,7 +926,7 @@ export default function AthenaChat() {
     const totalAdicionalesPorPersona = tipoSeleccionado === "desayuno"
       ? adicionalesSeleccionados.reduce((sum, idx) => sum + ADICIONALES_DESAYUNO[idx].precio, 0)
       : 0;
-    const subtotalAdicionales = totalAdicionalesPorPersona * personas;
+    const subtotalAdicionales = totalAdicionalesPorPersona;
     const subtotalBase = precioSeleccionado && personas ? precioSeleccionado * personas : 0;
     const subtotal = subtotalBase + subtotalAdicionales;
     const servicio = Math.round(subtotal * SERVICIO * 100) / 100;
@@ -986,8 +1002,8 @@ export default function AthenaChat() {
           ? [[
               "2",
               `Adicionales: ${nombresAdicionales}`,
-              String(personas),
-              `$${totalAdicionalesPorPersona.toFixed(2)}`,
+              String(adicionalesSeleccionados.length),
+              `$${subtotalAdicionales.toFixed(2)}`,
               `$${subtotalAdicionales.toFixed(2)}`,
             ]]
           : []),
