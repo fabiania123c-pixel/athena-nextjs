@@ -1398,11 +1398,11 @@ export default function AthenaChat() {
         </button>
 
         <div style={{
-          position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)", zIndex: 20,
-          color: "#f5f0e8", fontFamily: "Georgia, serif", fontSize: "13px",
-          letterSpacing: "0.1em", opacity: 0.85, textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+          position: "absolute", top: "16px", left: "50%", transform: "translateX(-50%)", zIndex: 20,
+          width: "34px", height: "34px", borderRadius: "50%", overflow: "hidden",
+          boxShadow: "0 0 0 1px rgba(245,240,232,0.4), 0 2px 10px rgba(0,0,0,0.5)",
         }}>
-          ATHENEUM
+          {logoImg}
         </div>
 
         <div style={{
@@ -1437,15 +1437,24 @@ export default function AthenaChat() {
               style={{
                 width: "100%", height: "100vh", scrollSnapAlign: "start",
                 position: "relative", display: "flex", alignItems: "flex-end",
-                justifyContent: "center", overflow: "hidden",
+                justifyContent: "center", overflow: "hidden", background: "#000",
               }}
             >
+              <img
+                src={foto.src}
+                alt=""
+                aria-hidden="true"
+                style={{
+                  position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+                  objectFit: "cover", filter: "blur(30px) brightness(0.5)", transform: "scale(1.15)",
+                }}
+              />
               <img
                 src={foto.src}
                 alt={foto.label}
                 style={{
                   position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
-                  objectFit: "cover",
+                  objectFit: "contain",
                   animation: i === galeriaIdx ? "kenburns 6s ease-out forwards" : "none",
                 }}
               />
@@ -1460,6 +1469,19 @@ export default function AthenaChat() {
               }}>
                 {foto.label}
               </div>
+
+              {i === 0 && (
+                <div style={{
+                  position: "absolute", bottom: "22px", left: "50%", transform: "translateX(-50%)",
+                  zIndex: 6, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                  animation: "fadeHint 2.5s ease-in-out infinite",
+                }}>
+                  <div style={{ color: "rgba(245,240,232,0.75)", fontSize: "10.5px", letterSpacing: "0.12em", fontFamily: "sans-serif", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>
+                    DESLIZA
+                  </div>
+                  <div style={{ color: "rgba(245,240,232,0.75)", fontSize: "16px" }}>↓</div>
+                </div>
+              )}
             </div>
           ))}
 
@@ -1503,7 +1525,11 @@ export default function AthenaChat() {
         <style>{`
           @keyframes kenburns {
             0% { transform: scale(1); }
-            100% { transform: scale(1.08); }
+            100% { transform: scale(1.06); }
+          }
+          @keyframes fadeHint {
+            0%, 100% { opacity: 0.4; transform: translate(-50%, 0); }
+            50% { opacity: 1; transform: translate(-50%, 6px); }
           }
           div[style*="overflowY: scroll"]::-webkit-scrollbar { display: none; }
         `}</style>
