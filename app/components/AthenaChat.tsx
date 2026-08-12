@@ -83,6 +83,34 @@ const PRECIOS = {
         "Café americano · té inglés", "Jugo natural del día",
       ],
     },
+    {
+      tier: "Desayuno Tradicional — $11 + IVA", precio: 11, descripcion: "Por persona",
+      detalle: [
+        "Bolones de queso y mapahuira", "Huevos a elección",
+        "Jugo de naranja", "Café americano",
+      ],
+    },
+    {
+      tier: "Tostadas de Salmón — $11 + IVA", precio: 11, descripcion: "Por persona",
+      detalle: [
+        "Tostadas artesanales · salmón curado · alioli de aguacate · huevos a elección",
+        "Jugo de naranja", "Café americano",
+      ],
+    },
+    {
+      tier: "Huevos Benedict — $11 + IVA", precio: 11, descripcion: "Por persona",
+      detalle: [
+        "Tostadas artesanales · huevos pochados · salsa holandesa · crocante de tocino",
+        "Jugo de naranja", "Café americano",
+      ],
+    },
+    {
+      tier: "Desayuno Continental — $11 + IVA", precio: 11, descripcion: "Por persona",
+      detalle: [
+        "Canasta de pan artesanal", "Huevos a elección", "Parfait de yogurt griego",
+        "Jugo de naranja", "Café americano",
+      ],
+    },
     { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
   ],
   lunch: [
@@ -141,6 +169,15 @@ const PRECIOS = {
 
 const IVA = 0.15;
 const SERVICIO = 0.10;
+
+const ADICIONALES_DESAYUNO = [
+  { nombre: "Canasta de pan artesanal", precio: 3.5 },
+  { nombre: "Parfait de yogurt griego", precio: 3.5 },
+  { nombre: "Copa de frutas de temporada", precio: 3.5 },
+  { nombre: "Huevos a elección", precio: 3.5 },
+  { nombre: "Porción de aguacate", precio: 3.5 },
+  { nombre: "Tocino crocante", precio: 3.5 },
+];
 
 function loadImageAsBase64(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -558,14 +595,19 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
   );
 }
 
-function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolver, onMasPreguntas, onDescargarPDF }: { datos: CotizacionData; tipo: TipoComida; tierIdx: number; precio: number | null; onConfirmar: () => void; onVolver: () => void; onMasPreguntas: () => void; onDescargarPDF: () => void }) {
+function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolver, onMasPreguntas, onDescargarPDF, adicionalesSeleccionados, onToggleAdicional }: { datos: CotizacionData; tipo: TipoComida; tierIdx: number; precio: number | null; onConfirmar: () => void; onVolver: () => void; onMasPreguntas: () => void; onDescargarPDF: () => void; adicionalesSeleccionados: number[]; onToggleAdicional: (idx: number) => void }) {
   if (!tipo) return null;
   const item = PRECIOS[tipo][tierIdx];
   const personas = Number(datos.personas) || 0;
-  const subtotal = precio && personas ? precio * personas : null;
-  const servicio = subtotal ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
-  const iva = subtotal ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
-  const total = subtotal ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
+  const subtotalBase = precio && personas ? precio * personas : null;
+  const totalAdicionalesPorPersona = tipo === "desayuno"
+    ? adicionalesSeleccionados.reduce((sum, idx) => sum + ADICIONALES_DESAYUNO[idx].precio, 0)
+    : 0;
+  const subtotalAdicionales = totalAdicionalesPorPersona * personas;
+  const subtotal = subtotalBase !== null ? subtotalBase + subtotalAdicionales : null;
+  const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
+  const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
+  const total = subtotal !== null ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
   const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
   return (
     <div>
@@ -593,9 +635,15 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
                 <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>Precio por persona</span>
                 <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${precio}</span>
               </div>
+              {subtotalAdicionales > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>Adicionales</span>
+                  <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${subtotalAdicionales.toFixed(2)}</span>
+                </div>
+              )}
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>Subtotal</span>
-                <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${subtotal}</span>
+                <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${subtotal!.toFixed(2)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>Servicio (10%)</span>
@@ -608,6 +656,34 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
             </>
           )}
         </div>
+
+        {tipo === "desayuno" && precio !== null && (
+          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.2)", borderRadius: "12px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ color: "#c9a96e", fontSize: "11px", letterSpacing: "0.1em", fontWeight: "700", marginBottom: "2px" }}>ADICIONALES · $3.50 c/u por persona</div>
+            {ADICIONALES_DESAYUNO.map((ad, idx) => {
+              const activo = adicionalesSeleccionados.includes(idx);
+              return (
+                <label key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", padding: "4px 0" }}>
+                  <div
+                    onClick={() => onToggleAdicional(idx)}
+                    style={{
+                      width: "18px", height: "18px", borderRadius: "5px", flexShrink: 0,
+                      border: activo ? "none" : "1px solid rgba(201,169,110,0.4)",
+                      background: activo ? "#c9a96e" : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "#0a1628", fontSize: "12px", fontWeight: "700",
+                    }}
+                  >
+                    {activo ? "✓" : ""}
+                  </div>
+                  <span onClick={() => onToggleAdicional(idx)} style={{ color: "rgba(245,240,232,0.8)", fontSize: "13px", flex: 1 }}>{ad.nombre}</span>
+                  <span style={{ color: "rgba(245,240,232,0.4)", fontSize: "12px" }}>${ad.precio.toFixed(2)}</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
         <div style={{ height: "1px", background: "rgba(201,169,110,0.15)" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ color: "#c9a96e", fontSize: "13px", fontWeight: "700", letterSpacing: "0.1em" }}>{precio ? "TOTAL" : "A COORDINAR"}</span>
@@ -663,6 +739,7 @@ export default function AthenaChat() {
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoComida>(null);
   const [tierSeleccionado, setTierSeleccionado] = useState<number>(0);
   const [precioSeleccionado, setPrecioSeleccionado] = useState<number | null>(null);
+  const [adicionalesSeleccionados, setAdicionalesSeleccionados] = useState<number[]>([]);
   const [cotizacionMessages, setCotizacionMessages] = useState<{ role: "athena" | "user"; content: string }[]>([]);
   const cotizacionEndRef = useRef<HTMLDivElement>(null);
 
@@ -686,6 +763,7 @@ export default function AthenaChat() {
     setCotizacionStep("fecha");
     setCotizacionData({ personas: 2 });
     setCotizacionMessages([]);
+    setAdicionalesSeleccionados([]);
     setPantalla("cotizacion");
   };
 
@@ -770,11 +848,17 @@ export default function AthenaChat() {
     const datos = cotizacionData;
     const item = tipoSeleccionado ? PRECIOS[tipoSeleccionado][tierSeleccionado] : null;
     const personas = Number(datos.personas) || 0;
-    const subtotal = precioSeleccionado && personas ? precioSeleccionado * personas : null;
-    const servicio = subtotal ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
-    const iva = subtotal ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
-    const total = subtotal ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
+    const totalAdicionalesPorPersona = tipoSeleccionado === "desayuno"
+      ? adicionalesSeleccionados.reduce((sum, idx) => sum + ADICIONALES_DESAYUNO[idx].precio, 0)
+      : 0;
+    const subtotalAdicionales = totalAdicionalesPorPersona * personas;
+    const subtotalBase = precioSeleccionado && personas ? precioSeleccionado * personas : null;
+    const subtotal = subtotalBase !== null ? subtotalBase + subtotalAdicionales : null;
+    const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
+    const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
+    const total = subtotal !== null ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
     const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
+    const nombresAdicionales = adicionalesSeleccionados.map((idx) => ADICIONALES_DESAYUNO[idx].nombre).join(", ");
 
     let cuerpo = "";
     if (datos.textoPersonalizado) {
@@ -785,10 +869,12 @@ export default function AthenaChat() {
     } else {
       cuerpo =
         `Tipo: ${tipoSeleccionado ? tipoLabel[tipoSeleccionado] : ""} — ${item?.tier}\n` +
+        (nombresAdicionales ? `Adicionales: ${nombresAdicionales}\n` : "") +
         `———————————————\n` +
         `Precio/persona:  $${precioSeleccionado}\n` +
         `Personas:        ${personas}\n` +
-        `Subtotal:        $${subtotal}\n` +
+        (subtotalAdicionales > 0 ? `Adicionales:     $${subtotalAdicionales.toFixed(2)}\n` : "") +
+        `Subtotal:        $${subtotal!.toFixed(2)}\n` +
         `Servicio (10%):  $${servicio}\n` +
         `IVA (15%):       $${iva}\n` +
         `———————————————\n` +
@@ -821,11 +907,17 @@ export default function AthenaChat() {
     const datos = cotizacionData;
     const item = tipoSeleccionado ? PRECIOS[tipoSeleccionado][tierSeleccionado] : null;
     const personas = Number(datos.personas) || 0;
-    const subtotal = precioSeleccionado && personas ? precioSeleccionado * personas : 0;
+    const totalAdicionalesPorPersona = tipoSeleccionado === "desayuno"
+      ? adicionalesSeleccionados.reduce((sum, idx) => sum + ADICIONALES_DESAYUNO[idx].precio, 0)
+      : 0;
+    const subtotalAdicionales = totalAdicionalesPorPersona * personas;
+    const subtotalBase = precioSeleccionado && personas ? precioSeleccionado * personas : 0;
+    const subtotal = subtotalBase + subtotalAdicionales;
     const servicio = Math.round(subtotal * SERVICIO * 100) / 100;
     const iva = Math.round((subtotal + servicio) * IVA * 100) / 100;
     const total = Math.round((subtotal + servicio + iva) * 100) / 100;
     const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena" };
+    const nombresAdicionales = adicionalesSeleccionados.map((idx) => ADICIONALES_DESAYUNO[idx].nombre).join(", ");
     const hoy = new Date();
     const fechaEmision = hoy.toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" });
     const numero = `COT-${hoy.getFullYear()}${String(hoy.getMonth() + 1).padStart(2, "0")}${String(hoy.getDate()).padStart(2, "0")}-${String(hoy.getHours()).padStart(2, "0")}${String(hoy.getMinutes()).padStart(2, "0")}`;
@@ -888,8 +980,17 @@ export default function AthenaChat() {
           tituloItem,
           String(personas),
           precioSeleccionado ? `$${precioSeleccionado.toFixed(2)}` : "A coordinar",
-          precioSeleccionado ? `$${subtotal.toFixed(2)}` : "A coordinar",
+          precioSeleccionado ? `$${subtotalBase.toFixed(2)}` : "A coordinar",
         ],
+        ...(nombresAdicionales
+          ? [[
+              "2",
+              `Adicionales: ${nombresAdicionales}`,
+              String(personas),
+              `$${totalAdicionalesPorPersona.toFixed(2)}`,
+              `$${subtotalAdicionales.toFixed(2)}`,
+            ]]
+          : []),
       ],
       theme: "grid",
       headStyles: { fillColor: [10, 22, 40], textColor: [255, 255, 255], fontSize: 9, fontStyle: "bold" },
@@ -991,6 +1092,7 @@ export default function AthenaChat() {
     setTipoSeleccionado(null);
     setCotizacionData((prev) => ({ ...prev, textoPersonalizado: undefined }));
     setCotizacionMessages((prev) => prev.slice(0, -1));
+    setAdicionalesSeleccionados([]);
   };
 
   const handleMasPreguntas = () => {
@@ -1375,7 +1477,7 @@ export default function AthenaChat() {
           ))}
           {cotizacionStep === "menu" && <div style={{ paddingLeft: "0" }}><CartaPrecios onSelect={handleTierSelect} /></div>}
           {cotizacionStep === "resultado" && tipoSeleccionado && (
-            <ResultadoCotizacion datos={cotizacionData as CotizacionData} tipo={tipoSeleccionado} tierIdx={tierSeleccionado} precio={precioSeleccionado} onConfirmar={handleConfirmarCotizacion} onVolver={handleVolverMenu} onMasPreguntas={handleMasPreguntas} onDescargarPDF={handleDescargarPDF} />
+            <ResultadoCotizacion datos={cotizacionData as CotizacionData} tipo={tipoSeleccionado} tierIdx={tierSeleccionado} precio={precioSeleccionado} onConfirmar={handleConfirmarCotizacion} onVolver={handleVolverMenu} onMasPreguntas={handleMasPreguntas} onDescargarPDF={handleDescargarPDF} adicionalesSeleccionados={adicionalesSeleccionados} onToggleAdicional={(idx) => setAdicionalesSeleccionados((prev) => prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx])} />
           )}
           <div ref={cotizacionEndRef} />
         </div>
