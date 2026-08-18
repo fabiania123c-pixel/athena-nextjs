@@ -56,34 +56,6 @@ const WA_NUMBER = "593980435843";
 const PRECIOS = {
   desayuno: [
     {
-      tier: "Costamar — $12 + IMP", precio: 12, descripcion: "Por persona",
-      detalle: [
-        "Variedad de frutas frescas", "Yogurt natural", "Granola · miel",
-        "Bolones mixtos: queso · chicharrón", "Huevo frito · sal prieta",
-        "Selección de pan artesanal · mantequilla · mermelada",
-        "Café americano · infusiones", "Jugo natural del día",
-      ],
-    },
-    {
-      tier: "Manhattan Matutino — $18 + IMP", precio: 18, descripcion: "Por persona",
-      detalle: [
-        "Variedad de frutas frescas", "Yogurt natural", "Granola",
-        "Bagel artesanal · trucha ahumada · queso crema · aguacate",
-        "Huevo benedictino · salsa holandesa",
-        "Selección de pan artesanal · mantequilla · mermelada",
-        "Café americano · infusiones", "Jugo natural del día",
-      ],
-    },
-    {
-      tier: "Club Inglés — $22 + IMP", precio: 22, descripcion: "Por persona",
-      detalle: [
-        "Variedad de frutas frescas", "Yogurt natural", "Granola",
-        "Papa hashbrown", "Tocino crocante", "Salchichas artesanales", "Scramble eggs",
-        "Selección de pan artesanal · mantequilla · mermelada",
-        "Café americano · té inglés", "Jugo natural del día",
-      ],
-    },
-    {
       tier: "Desayuno Tradicional — $11 + IMP", precio: 11, descripcion: "Por persona", grupo: "11",
       detalle: [
         "Bolones de queso y mapahuira", "Huevos a elección",
@@ -109,6 +81,34 @@ const PRECIOS = {
       detalle: [
         "Canasta de pan artesanal", "Huevos a elección", "Parfait de yogurt griego",
         "Jugo de naranja", "Café americano",
+      ],
+    },
+    {
+      tier: "Costamar — $12 + IMP", precio: 12, descripcion: "Por persona",
+      detalle: [
+        "Variedad de frutas frescas", "Yogurt natural", "Granola · miel",
+        "Bolones mixtos: queso · chicharrón", "Huevo frito · sal prieta",
+        "Selección de pan artesanal · mantequilla · mermelada",
+        "Café americano · infusiones", "Jugo natural del día",
+      ],
+    },
+    {
+      tier: "Manhattan Matutino — $18 + IMP", precio: 18, descripcion: "Por persona",
+      detalle: [
+        "Variedad de frutas frescas", "Yogurt natural", "Granola",
+        "Bagel artesanal · trucha ahumada · queso crema · aguacate",
+        "Huevo benedictino · salsa holandesa",
+        "Selección de pan artesanal · mantequilla · mermelada",
+        "Café americano · infusiones", "Jugo natural del día",
+      ],
+    },
+    {
+      tier: "Club Inglés — $22 + IMP", precio: 22, descripcion: "Por persona",
+      detalle: [
+        "Variedad de frutas frescas", "Yogurt natural", "Granola",
+        "Papa hashbrown", "Tocino crocante", "Salchichas artesanales", "Scramble eggs",
+        "Selección de pan artesanal · mantequilla · mermelada",
+        "Café americano · té inglés", "Jugo natural del día",
       ],
     },
     { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
