@@ -49,14 +49,14 @@ interface ReservaData {
 
 type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva" | "galeria";
 type CotizacionStep = "fecha" | "hora" | "personas" | "nombre" | "menu" | "resultado";
-type TipoComida = "desayuno" | "lunch" | "cena" | "bocaditos" | null;
+type TipoComida = "desayuno" | "lunch" | "bocaditos" | null;
 
 const WA_NUMBER = "593980435843";
 
 const PRECIOS = {
   desayuno: [
     {
-      tier: "Costamar — $12 + IVA", precio: 12, descripcion: "Por persona",
+      tier: "Costamar — $12 + IMP", precio: 12, descripcion: "Por persona",
       detalle: [
         "Variedad de frutas frescas", "Yogurt natural", "Granola · miel",
         "Bolones mixtos: queso · chicharrón", "Huevo frito · sal prieta",
@@ -65,7 +65,7 @@ const PRECIOS = {
       ],
     },
     {
-      tier: "Manhattan Matutino — $18 + IVA", precio: 18, descripcion: "Por persona",
+      tier: "Manhattan Matutino — $18 + IMP", precio: 18, descripcion: "Por persona",
       detalle: [
         "Variedad de frutas frescas", "Yogurt natural", "Granola",
         "Bagel artesanal · trucha ahumada · queso crema · aguacate",
@@ -75,7 +75,7 @@ const PRECIOS = {
       ],
     },
     {
-      tier: "Club Inglés — $22 + IVA", precio: 22, descripcion: "Por persona",
+      tier: "Club Inglés — $22 + IMP", precio: 22, descripcion: "Por persona",
       detalle: [
         "Variedad de frutas frescas", "Yogurt natural", "Granola",
         "Papa hashbrown", "Tocino crocante", "Salchichas artesanales", "Scramble eggs",
@@ -84,28 +84,28 @@ const PRECIOS = {
       ],
     },
     {
-      tier: "Desayuno Tradicional — $11 + IVA", precio: 11, descripcion: "Por persona",
+      tier: "Desayuno Tradicional — $11 + IMP", precio: 11, descripcion: "Por persona", grupo: "11",
       detalle: [
         "Bolones de queso y mapahuira", "Huevos a elección",
         "Jugo de naranja", "Café americano",
       ],
     },
     {
-      tier: "Tostadas de Salmón — $11 + IVA", precio: 11, descripcion: "Por persona",
+      tier: "Tostadas de Salmón — $11 + IMP", precio: 11, descripcion: "Por persona", grupo: "11",
       detalle: [
         "Tostadas artesanales · salmón curado · alioli de aguacate · huevos a elección",
         "Jugo de naranja", "Café americano",
       ],
     },
     {
-      tier: "Huevos Benedict — $11 + IVA", precio: 11, descripcion: "Por persona",
+      tier: "Huevos Benedict — $11 + IMP", precio: 11, descripcion: "Por persona", grupo: "11",
       detalle: [
         "Tostadas artesanales · huevos pochados · salsa holandesa · crocante de tocino",
         "Jugo de naranja", "Café americano",
       ],
     },
     {
-      tier: "Desayuno Continental — $11 + IVA", precio: 11, descripcion: "Por persona",
+      tier: "Desayuno Continental — $11 + IMP", precio: 11, descripcion: "Por persona", grupo: "11",
       detalle: [
         "Canasta de pan artesanal", "Huevos a elección", "Parfait de yogurt griego",
         "Jugo de naranja", "Café americano",
@@ -115,41 +115,7 @@ const PRECIOS = {
   ],
   lunch: [
     {
-      tier: "Menú 1 — $55 + IVA", precio: 55, descripcion: "Por persona",
-      detalle: [
-        "Entrada — a elegir:",
-        "Ensalada caprese — mozzarella de búfala · tomate San Marzano · rúcula",
-        "Ceviche de atún — atún rojo · base de leche de coco · ralladura de limón · jengibre",
-        "Empanadas en 3 actos — morocho · viento · verde",
-        "Plato fuerte — a elegir:",
-        "Pesca blanca — pesca del día · reducción de vino blanco · aceite de albahaca",
-        "Pollo a la naranja — crocante de pollo · risotto de hongos · ensalada fresca",
-        "Lomo & cacao — demi-glace de cacao · puré de papa chaucha · vegetales al grill",
-        "Postre — a elegir:",
-        "Brownie — cremoso al 70% · helado de vainilla · crocante de avellana",
-        "Bebidas — a elegir:",
-        "Vino blanco · vino tinto",
-      ],
-    },
-    {
-      tier: "Menú 2 — $60 + IVA", precio: 60, descripcion: "Por persona",
-      detalle: [
-        "Entrada — a elegir:",
-        "Burrata salad — duraznos sellados al grill · rúcula · reducción de balsámico",
-        "Tartar de res — lomo fino de res · mostaza dijon · pepinillo · alcaparras",
-        "Pulpo a la parrilla — tentáculos de pulpo · papas nativas · salsa de aceitunas negras",
-        "Plato fuerte — a elegir:",
-        "Langostinos parrilla — ensalada de queso maduro · papas fritas artesanales · langostino",
-        "Lomo paris — lomo fino de res · arroz blanco · papas fritas",
-        "Pork belly — cerdo cocinado en larga cocción · puré de choclo · ensalada",
-        "Postre — a elegir:",
-        "Crumble de manzana — helado de vainilla · crocante de avellana",
-        "Bebidas — a elegir:",
-        "Vino blanco · vino tinto",
-      ],
-    },
-    {
-      tier: "Menú 3 — $25 + IVA", precio: 25, descripcion: "Por persona",
+      tier: "Menú 1 — $25 + IMP", precio: 25, descripcion: "Por persona",
       detalle: [
         "Entrada — a elegir:",
         "Corviches con encocado de camarón — emulsión de tomate de árbol, con curtido tradicional",
@@ -164,11 +130,8 @@ const PRECIOS = {
         "Pan de bienvenida · arroz a las finas hierbas cuchareable",
       ],
     },
-    { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
-  ],
-  cena: [
     {
-      tier: "Menú Corporativo — $35 + IVA", precio: 35, descripcion: "Empanadas, ceviche, plato fuerte, postre y copa de vino",
+      tier: "Menú Ejecutivo — $35 + IMP", precio: 35, descripcion: "Empanadas, ceviche, plato fuerte, postre y copa de vino",
       detalle: [
         "Centro — Tabla de empanadas: mix verde, morocho, viento",
         "Entrada — Mini ceviche tatemado: emulsión de mariscos · camarón · chips",
@@ -182,9 +145,9 @@ const PRECIOS = {
     { tier: "Personalizar", precio: null, descripcion: "Indícanos lo que tienes en mente" },
   ],
   bocaditos: [
-    { tier: "Esencial — $18 + IVA", precio: 18, descripcion: "6 bocaditos · 4 variedades a elegir · 5 salados + 1 dulce · Ideal para reuniones y coffee meetings" },
-    { tier: "Signature — $25 + IVA", precio: 25, descripcion: "8 bocaditos · 6 variedades a elegir · 7 salados + 1 dulce · Ideal para cócteles y networking" },
-    { tier: "Atheneum — $35 + IVA", precio: 35, descripcion: "10 bocaditos · 8 variedades a elegir · 8 salados + 2 dulces · Ideal para eventos premium" },
+    { tier: "Esencial — $18 + IMP", precio: 18, descripcion: "6 bocaditos · 4 variedades a elegir · 5 salados + 1 dulce · Ideal para reuniones y coffee meetings" },
+    { tier: "Signature — $25 + IMP", precio: 25, descripcion: "8 bocaditos · 6 variedades a elegir · 7 salados + 1 dulce · Ideal para cócteles y networking" },
+    { tier: "Atheneum — $35 + IMP", precio: 35, descripcion: "10 bocaditos · 8 variedades a elegir · 8 salados + 2 dulces · Ideal para eventos premium" },
   ],
 };
 
@@ -468,7 +431,7 @@ function QuoteCard({ opcion, numero, onSelect }: { opcion: QuoteOption; numero: 
       </div>
       <div style={{ height: "1px", background: "rgba(201,169,110,0.15)" }} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ color: "#c9a96e", fontSize: "13px", fontWeight: "700", letterSpacing: "0.1em" }}>TOTAL + IVA</span>
+        <span style={{ color: "#c9a96e", fontSize: "13px", fontWeight: "700", letterSpacing: "0.1em" }}>TOTAL + IMP</span>
         <span style={{ color: "#c9a96e", fontSize: "26px", fontFamily: "Georgia, serif", fontWeight: "700" }}>${opcion.total}</span>
       </div>
       <div style={{ color: "rgba(245,240,232,0.4)", fontSize: "12px", fontStyle: "italic", lineHeight: "1.6", minHeight: "36px" }}>{opcion.nota}</div>
@@ -485,11 +448,86 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
   const [menuExpandido, setMenuExpandido] = React.useState(false);
   const [detalleAbierto, setDetalleAbierto] = React.useState<{ tipo: TipoComida; idx: number } | null>(null);
   const [catalogoBocaditosAbierto, setCatalogoBocaditosAbierto] = React.useState(false);
+  const [gruposAbiertos, setGruposAbiertos] = React.useState<Record<string, boolean>>({});
   const secciones: { key: TipoComida; label: string }[] = [
     { key: "desayuno", label: "Desayuno" },
     { key: "lunch", label: "Lunch" },
     { key: "bocaditos", label: "Bocaditos" },
   ];
+
+  const renderTierItem = (key: TipoComida, item: any, idx: number) => {
+    const esPersonalizar = item.precio === null;
+    const esteActivo = personalizar?.tipo === key && personalizar?.idx === idx;
+    const detalleActivo = detalleAbierto?.tipo === key && detalleAbierto?.idx === idx;
+    const esDestacado = key === "lunch" && item.tier.startsWith("Menú Ejecutivo");
+    return (
+      <div key={idx}>
+        {esDestacado && (
+          <div style={{
+            display: "inline-block", background: "#c9a96e", color: "#0a1628",
+            fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em",
+            padding: "4px 12px", borderRadius: "20px", marginBottom: "8px",
+          }}>
+            MENÚ EJECUTIVO
+          </div>
+        )}
+        <button onClick={() => { if (esPersonalizar) { setPersonalizar({ tipo: key, idx }); setTextoPersonalizado(""); } else { onSelect(key, idx, item.precio); } }}
+          style={{
+            background: esteActivo ? "rgba(201,169,110,0.12)" : esDestacado ? "rgba(201,169,110,0.1)" : "rgba(255,255,255,0.04)",
+            border: esteActivo ? "1px solid rgba(201,169,110,0.6)" : esDestacado ? "1.5px solid #c9a96e" : "1px solid rgba(201,169,110,0.2)",
+            borderRadius: esteActivo || (item.detalle && detalleActivo) ? "14px 14px 0 0" : "14px", padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.2s", textAlign: "left", width: "100%" }}
+          onMouseEnter={(e) => { if (!esteActivo) { e.currentTarget.style.background = "rgba(201,169,110,0.08)"; e.currentTarget.style.borderColor = "rgba(201,169,110,0.5)"; } }}
+          onMouseLeave={(e) => { if (!esteActivo) { e.currentTarget.style.background = esDestacado ? "rgba(201,169,110,0.1)" : "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = esDestacado ? "#c9a96e" : "rgba(201,169,110,0.2)"; } }}>
+          <div>
+            <div style={{ color: "#f5f0e8", fontSize: "14px", fontFamily: "Georgia, serif", marginBottom: "3px" }}>{item.tier}</div>
+            <div style={{ color: "rgba(245,240,232,0.45)", fontSize: "12px" }}>{item.descripcion}</div>
+          </div>
+          <div style={{ color: "#c9a96e", fontSize: "15px", fontFamily: "Georgia, serif", fontWeight: "700", whiteSpace: "nowrap", marginLeft: "16px" }}>{esPersonalizar ? "Personalizar →" : `$${item.precio} + IMP`}</div>
+        </button>
+
+        {item.detalle && (
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(201,169,110,0.2)", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "10px 18px" }}>
+            <button
+              onClick={() => setDetalleAbierto(detalleActivo ? null : { tipo: key, idx })}
+              style={{ background: "transparent", border: "none", color: "rgba(201,169,110,0.7)", fontSize: "11px", fontFamily: "Georgia, serif", fontStyle: "italic", cursor: "pointer", padding: 0 }}
+            >
+              {detalleActivo ? "Ocultar detalle ↑" : "Ver detalle ↓"}
+            </button>
+            {detalleActivo && (
+              <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "5px" }}>
+                {item.detalle.map((linea: string, i: number) => {
+                  const esHeader = linea.endsWith(":");
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        color: esHeader ? "rgba(201,169,110,0.75)" : "rgba(245,240,232,0.5)",
+                        fontSize: "11.5px",
+                        fontWeight: esHeader ? 700 : 400,
+                        letterSpacing: esHeader ? "0.05em" : "normal",
+                        lineHeight: "1.5",
+                        marginTop: esHeader && i > 0 ? "4px" : "0",
+                      }}
+                    >
+                      {linea}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {esteActivo && (
+          <div style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.4)", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "14px 18px", display: "flex", gap: "10px" }}>
+            <input autoFocus type="text" value={textoPersonalizado} onChange={(e) => setTextoPersonalizado(e.target.value)} onKeyPress={(e) => { if (e.key === "Enter" && textoPersonalizado.trim()) { onSelect(key, idx, null, textoPersonalizado.trim()); } }} placeholder="Describe lo que tienes en mente..." style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#f5f0e8", fontSize: "14px", fontFamily: "Georgia, serif" }} />
+            <button onClick={() => { if (textoPersonalizado.trim()) onSelect(key, idx, null, textoPersonalizado.trim()); }} disabled={!textoPersonalizado.trim()} style={{ background: "#c9a96e", border: "none", borderRadius: "8px", padding: "6px 14px", color: "#0a1628", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: textoPersonalizado.trim() ? 1 : 0.4 }}>→</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
@@ -577,9 +615,9 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
         </button>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", fontStyle: "italic" }}>Más IVA y 10% de servicio</span>
+          <span style={{ color: "rgba(245,240,232,0.4)", fontSize: "11px", fontStyle: "italic" }}>Más imp. y 10% de servicio</span>
           <button
-            onClick={() => onSelect("cena", 0, 35)}
+            onClick={() => onSelect("lunch", 1, 35)}
             style={{
               background: "#c9a96e", border: "none", borderRadius: "10px",
               padding: "10px 18px", color: "#0a1628", fontSize: "14px",
@@ -596,65 +634,39 @@ function CartaPrecios({ onSelect }: { onSelect: (tipo: TipoComida, tierIdx: numb
           <div style={{ color: "#c9a96e", fontSize: "11px", fontWeight: "700", letterSpacing: "0.2em", marginBottom: "10px" }}>{label.toUpperCase()}</div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {PRECIOS[key!].map((item: any, idx) => {
-              const esPersonalizar = item.precio === null;
-              const esteActivo = personalizar?.tipo === key && personalizar?.idx === idx;
-              const detalleActivo = detalleAbierto?.tipo === key && detalleAbierto?.idx === idx;
-              return (
-                <div key={idx}>
-                  <button onClick={() => { if (esPersonalizar) { setPersonalizar({ tipo: key, idx }); setTextoPersonalizado(""); } else { onSelect(key, idx, item.precio); } }}
-                    style={{ background: esteActivo ? "rgba(201,169,110,0.12)" : "rgba(255,255,255,0.04)", border: esteActivo ? "1px solid rgba(201,169,110,0.6)" : "1px solid rgba(201,169,110,0.2)", borderRadius: esteActivo || (item.detalle && detalleActivo) ? "14px 14px 0 0" : "14px", padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.2s", textAlign: "left", width: "100%" }}
-                    onMouseEnter={(e) => { if (!esteActivo) { e.currentTarget.style.background = "rgba(201,169,110,0.08)"; e.currentTarget.style.borderColor = "rgba(201,169,110,0.5)"; } }}
-                    onMouseLeave={(e) => { if (!esteActivo) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(201,169,110,0.2)"; } }}>
-                    <div>
-                      <div style={{ color: "#f5f0e8", fontSize: "14px", fontFamily: "Georgia, serif", marginBottom: "3px" }}>{item.tier}</div>
-                      <div style={{ color: "rgba(245,240,232,0.45)", fontSize: "12px" }}>{item.descripcion}</div>
-                    </div>
-                    <div style={{ color: "#c9a96e", fontSize: "15px", fontFamily: "Georgia, serif", fontWeight: "700", whiteSpace: "nowrap", marginLeft: "16px" }}>{esPersonalizar ? "Personalizar →" : `$${item.precio} + IVA`}</div>
-                  </button>
-
-                  {item.detalle && (
-                    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(201,169,110,0.2)", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "10px 18px" }}>
+            {(() => {
+              const items = PRECIOS[key!] as any[];
+              const gruposVistos = new Set<string>();
+              return items.map((item, idx) => {
+                if (item.grupo) {
+                  if (gruposVistos.has(item.grupo)) return null;
+                  gruposVistos.add(item.grupo);
+                  const groupKey = `${key}-${item.grupo}`;
+                  const abierto = !!gruposAbiertos[groupKey];
+                  const hijos = items.map((it, i) => ({ it, i })).filter((x) => x.it.grupo === item.grupo);
+                  return (
+                    <div key={`grupo-${item.grupo}`}>
                       <button
-                        onClick={() => setDetalleAbierto(detalleActivo ? null : { tipo: key, idx })}
-                        style={{ background: "transparent", border: "none", color: "rgba(201,169,110,0.7)", fontSize: "11px", fontFamily: "Georgia, serif", fontStyle: "italic", cursor: "pointer", padding: 0 }}
+                        onClick={() => setGruposAbiertos((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }))}
+                        style={{ background: abierto ? "rgba(201,169,110,0.12)" : "rgba(255,255,255,0.04)", border: abierto ? "1px solid rgba(201,169,110,0.6)" : "1px solid rgba(201,169,110,0.2)", borderRadius: abierto ? "14px 14px 0 0" : "14px", padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.2s", textAlign: "left", width: "100%" }}
                       >
-                        {detalleActivo ? "Ocultar detalle ↑" : "Ver detalle ↓"}
+                        <div>
+                          <div style={{ color: "#f5f0e8", fontSize: "14px", fontFamily: "Georgia, serif", marginBottom: "3px" }}>${item.precio} + IMP</div>
+                          <div style={{ color: "rgba(245,240,232,0.45)", fontSize: "12px" }}>Elige entre {hijos.length} opciones</div>
+                        </div>
+                        <div style={{ color: "#c9a96e", fontSize: "13px", fontFamily: "Georgia, serif", fontWeight: "700", whiteSpace: "nowrap", marginLeft: "16px" }}>{abierto ? "Ocultar ↑" : "Ver opciones →"}</div>
                       </button>
-                      {detalleActivo && (
-                        <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "5px" }}>
-                          {item.detalle.map((linea: string, i: number) => {
-                            const esHeader = linea.endsWith(":");
-                            return (
-                              <div
-                                key={i}
-                                style={{
-                                  color: esHeader ? "rgba(201,169,110,0.75)" : "rgba(245,240,232,0.5)",
-                                  fontSize: "11.5px",
-                                  fontWeight: esHeader ? 700 : 400,
-                                  letterSpacing: esHeader ? "0.05em" : "normal",
-                                  lineHeight: "1.5",
-                                  marginTop: esHeader && i > 0 ? "4px" : "0",
-                                }}
-                              >
-                                {linea}
-                              </div>
-                            );
-                          })}
+                      {abierto && (
+                        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(201,169,110,0.2)", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                          {hijos.map(({ it: hijo, i: hijoIdx }) => renderTierItem(key, hijo, hijoIdx))}
                         </div>
                       )}
                     </div>
-                  )}
-
-                  {esteActivo && (
-                    <div style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.4)", borderTop: "none", borderRadius: "0 0 14px 14px", padding: "14px 18px", display: "flex", gap: "10px" }}>
-                      <input autoFocus type="text" value={textoPersonalizado} onChange={(e) => setTextoPersonalizado(e.target.value)} onKeyPress={(e) => { if (e.key === "Enter" && textoPersonalizado.trim()) { onSelect(key, idx, null, textoPersonalizado.trim()); } }} placeholder="Describe lo que tienes en mente..." style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#f5f0e8", fontSize: "14px", fontFamily: "Georgia, serif" }} />
-                      <button onClick={() => { if (textoPersonalizado.trim()) onSelect(key, idx, null, textoPersonalizado.trim()); }} disabled={!textoPersonalizado.trim()} style={{ background: "#c9a96e", border: "none", borderRadius: "8px", padding: "6px 14px", color: "#0a1628", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: textoPersonalizado.trim() ? 1 : 0.4 }}>→</button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                }
+                return renderTierItem(key, item, idx);
+              });
+            })()}
           </div>
 
           {key === "bocaditos" && (
@@ -706,7 +718,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
   const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
   const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
   const total = subtotal !== null ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
-  const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
+  const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", bocaditos: "Bocaditos" };
   return (
     <div>
       <div style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.3)", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -748,7 +760,7 @@ function ResultadoCotizacion({ datos, tipo, tierIdx, precio, onConfirmar, onVolv
                 <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${servicio}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>IVA (15%)</span>
+                <span style={{ color: "rgba(245,240,232,0.6)", fontSize: "14px" }}>IMP (15%)</span>
                 <span style={{ color: "#f5f0e8", fontSize: "14px" }}>${iva}</span>
               </div>
             </>
@@ -962,7 +974,7 @@ export default function AthenaChat() {
     const servicio = subtotal !== null ? Math.round(subtotal * SERVICIO * 100) / 100 : null;
     const iva = subtotal !== null ? Math.round((subtotal + servicio!) * IVA * 100) / 100 : null;
     const total = subtotal !== null ? Math.round((subtotal + servicio! + iva!) * 100) / 100 : null;
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", bocaditos: "Bocaditos" };
     const nombresAdicionales = adicionalesSeleccionados.map((idx) => ADICIONALES_DESAYUNO[idx].nombre).join(", ");
 
     let cuerpo = "";
@@ -981,7 +993,7 @@ export default function AthenaChat() {
         (subtotalAdicionales > 0 ? `Adicionales:     $${subtotalAdicionales.toFixed(2)}\n` : "") +
         `Subtotal:        $${subtotal!.toFixed(2)}\n` +
         `Servicio (10%):  $${servicio}\n` +
-        `IVA (15%):       $${iva}\n` +
+        `IMP (15%):       $${iva}\n` +
         `———————————————\n` +
         `TOTAL:           $${total}`;
     }
@@ -1021,7 +1033,7 @@ export default function AthenaChat() {
     const servicio = Math.round(subtotal * SERVICIO * 100) / 100;
     const iva = Math.round((subtotal + servicio) * IVA * 100) / 100;
     const total = Math.round((subtotal + servicio + iva) * 100) / 100;
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", bocaditos: "Bocaditos" };
     const nombresAdicionales = adicionalesSeleccionados.map((idx) => ADICIONALES_DESAYUNO[idx].nombre).join(", ");
     const hoy = new Date();
     const fechaEmision = hoy.toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" });
@@ -1162,7 +1174,7 @@ export default function AthenaChat() {
       doc.text(`$${subtotal.toFixed(2)}`, 196, finalY, { align: "right" });
       doc.text("Servicio (10%):", 150, finalY + 6, { align: "right" });
       doc.text(`$${servicio.toFixed(2)}`, 196, finalY + 6, { align: "right" });
-      doc.text("IVA (15%):", 150, finalY + 12, { align: "right" });
+      doc.text("IMP (15%):", 150, finalY + 12, { align: "right" });
       doc.text(`$${iva.toFixed(2)}`, 196, finalY + 12, { align: "right" });
 
       doc.setDrawColor(201, 169, 110);
@@ -1201,7 +1213,7 @@ export default function AthenaChat() {
   };
 
   const handleMasPreguntas = () => {
-    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", cena: "Cena", bocaditos: "Bocaditos" };
+    const tipoLabel: Record<string, string> = { desayuno: "Desayuno", lunch: "Lunch", bocaditos: "Bocaditos" };
     const item = tipoSeleccionado ? PRECIOS[tipoSeleccionado][tierSeleccionado] : null;
     const contexto = tipoSeleccionado
       ? `Hola, estuve viendo una cotización de ${tipoLabel[tipoSeleccionado]} — ${item?.tier}${precioSeleccionado ? ` a $${precioSeleccionado} por persona` : ""} para ${cotizacionData.personas || ""} personas el ${cotizacionData.fecha || cotizacionData._rawDatos || ""}. Tengo algunas preguntas adicionales.`
