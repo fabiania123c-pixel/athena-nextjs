@@ -4,6 +4,7 @@ import React from "react";
 import { useState, useRef, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import NavidadMenu from "./NavidadMenu";
 
 interface Message {
   role: "user" | "assistant";
@@ -47,7 +48,7 @@ interface ReservaData {
   nota: string;
 }
 
-type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva" | "galeria";
+type Pantalla = "inicio" | "chat" | "cotizacion" | "reserva" | "galeria" | "navidad";
 type CotizacionStep = "fecha" | "hora" | "personas" | "nombre" | "menu" | "resultado";
 type TipoComida = "desayuno" | "lunch" | "bocaditos" | null;
 
@@ -888,6 +889,11 @@ export default function AthenaChat() {
     ]);
   };
 
+  const handleNavidad = () => {
+    registrarEvento(conversacionId, "navidad");
+    setPantalla("navidad");
+  };
+
   const handleGaleria = () => {
     registrarEvento(conversacionId, "galeria");
     setPantalla("galeria");
@@ -1327,6 +1333,14 @@ export default function AthenaChat() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+            <button onClick={handleNavidad} style={{ position: "relative", overflow: "hidden", width: "100%", minHeight: "112px", borderRadius: "16px", border: "1px solid rgba(201,169,110,0.55)", padding: 0, cursor: "pointer", textAlign: "left", backgroundImage: "linear-gradient(90deg, rgba(10,22,40,0.96) 0%, rgba(10,22,40,0.8) 50%, rgba(10,22,40,0.1) 100%), url('/navidad/portada.jpg')", backgroundSize: "cover", backgroundPosition: "center 74%", boxShadow: "0 10px 26px rgba(0,0,0,0.45)", transition: "all 0.25s" }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#c9a96e"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,169,110,0.55)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ padding: "18px 20px", maxWidth: "75%" }}>
+                <div style={{ color: "#c9a96e", fontSize: "10px", letterSpacing: "0.22em", fontWeight: "700", fontFamily: "sans-serif", marginBottom: "6px" }}>TEMPORADA NAVIDEÑA 2026</div>
+                <div style={{ color: "#f5f0e8", fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "600", marginBottom: "4px" }}>Navidad en Atheneum</div>
+                <div style={{ color: "rgba(245,240,232,0.7)", fontSize: "12px", fontFamily: "sans-serif", marginBottom: "8px" }}>Tres menús desde $22 por persona</div>
+                <div style={{ color: "#e3c98d", fontSize: "12.5px", fontFamily: "Georgia, serif", fontStyle: "italic" }}>Ver menús →</div>
+              </div>
+            </button>
             <button onClick={handleReservaRapida} style={{ background: "linear-gradient(135deg, rgba(37,211,102,0.12), rgba(37,211,102,0.03))", border: "1px solid rgba(37,211,102,0.35)", borderRadius: "14px", padding: "16px 18px", display: "flex", alignItems: "center", gap: "14px", cursor: "pointer", transition: "all 0.25s", textAlign: "left", width: "100%", boxShadow: "0 6px 16px rgba(0,0,0,0.3)" }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(37,211,102,0.6)"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(37,211,102,0.35)"; e.currentTarget.style.transform = "translateY(0)"; }}>
               <div style={{ width: "38px", height: "38px", borderRadius: "50%", border: "1px solid rgba(74,222,128,0.4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="#4ade80"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.12-.27-.2-.57-.35zM12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45c6.55 0 11.89-5.34 11.89-11.89C23.94 5.34 18.6 0 12.05 0z"/></svg>
@@ -1391,6 +1405,9 @@ export default function AthenaChat() {
         <style>{`@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} } html, body { margin: 0; padding: 0; }`}</style>
       </div>
     );
+  }
+  if (pantalla === "navidad") {
+    return <NavidadMenu onVolver={() => setPantalla("inicio")} onEvento={(ev) => registrarEvento(conversacionId, ev)} />;
   }
   if (pantalla === "galeria") {
     return (
