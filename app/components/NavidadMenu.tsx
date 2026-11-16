@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const GOLD = "#c9a96e";
 const GOLD_SOFT = "#e3c98d";
@@ -132,20 +134,428 @@ function Copo({ size = 12 }: { size?: number }) {
   );
 }
 
+const HORAS = ["08:00", "09:00", "12:00", "13:00", "14:00", "19:00", "20:00", "21:00"];
+const SERVICIO = 0.1;
+const IMP = 0.15;
+const redondear = (n: number) => Math.round(n * 100) / 100;
+
+function fechaBonita(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  return new Date(y, m - 1, d).toLocaleDateString("es-EC", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function esFinDeSemana(iso: string): boolean {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return false;
+  const dia = new Date(y, m - 1, d).getDay();
+  return dia === 0 || dia === 6;
+}
+
+function hoyISO(): string {
+  const h = new Date();
+  return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, "0")}-${String(h.getDate()).padStart(2, "0")}`;
+}
+
+function cargarImagen(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    fetch(url)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      })
+      .catch(reject);
+  });
+}
+
+function lineasMenu(o: Opcion): string[] {
+  const out: string[] = [];
+  o.bloques.forEach((b) => {
+    if (b.titulo) out.push(`${b.titulo}:`);
+    b.filas.forEach((f) => out.push(`${f.etiqueta ? f.etiqueta + ": " : ""}${f.nombre}`));
+  });
+  return out;
+}
+
+type GuardarDatos = {
+  nombre: string;
+  fecha: string;
+  hora: string;
+  personas: number;
+  tipo: string;
+  nota?: string;
+  fuente: string;
+};
+
+type CotizarProps = {
+  opcionInicial: number;
+  personasInicial: number;
+  onVolver: () => void;
+  onEvento: (evento: string) => void;
+  onGuardar: (datos: GuardarDatos) => void;
+};
+
+function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, onGuardar }: CotizarProps) {
+  const [opcionId, setOpcionId] = useState<number>(opcionInicial);
+  const [personas, setPersonas] = useState<number>(personasInicial);
+  const [nombre, setNombre] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [hora, setHora] = useState("");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const opcion = OPCIONES.find((o) => o.id === opcionId) || OPCIONES[0];
+  const subtotal = redondear(opcion.precio * personas);
+  const servicio = redondear(subtotal * SERVICIO);
+  const imp = redondear((subtotal + servicio) * IMP);
+  const total = redondear(subtotal + servicio + imp);
+
+  const finDeSemana = !!fecha && esFinDeSemana(fecha);
+  const valido = nombre.trim().length > 1 && !!fecha && !finDeSemana && !!hora;
+
+  const etiqueta: React.CSSProperties = {
+    color: GOLD, fontSize: "10.5px", letterSpacing: "0.2em", fontWeight: 700,
+    textTransform: "uppercase", fontFamily: "sans-serif", marginBottom: "8px",
+  };
+  const campo: React.CSSProperties = {
+    width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(201,169,110,0.3)", borderRadius: "12px", padding: "14px 16px",
+    color: CREAM, fontSize: "16px", outline: "none", fontFamily: "sans-serif", colorScheme: "dark",
+  };
+  const fila: React.CSSProperties = { display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13.5px", fontFamily: "sans-serif" };
+
+  const confirmar = () => {
+    if (!valido) return;
+    onEvento("navidad_confirmar");
+    const mensaje =
+      `Hola, quisiera confirmar una cotización de Atheneum (Navidad 2026).\n\n` +
+      `Nombre: ${nombre.trim()}\n` +
+      `Fecha: ${fechaBonita(fecha)}\n` +
+      `Hora: ${hora}\n\n` +
+      `Tipo: Navidad, Opción ${opcion.id} · ${opcion.titulo}\n` +
+      `———————————————\n` +
+      `Precio/persona:  $${opcion.precio}\n` +
+      `Personas:        ${personas}\n` +
+      `Subtotal:        $${subtotal.toFixed(2)}\n` +
+      `Servicio (10%):  $${servicio.toFixed(2)}\n` +
+      `IMP (15%):       $${imp.toFixed(2)}\n` +
+      `———————————————\n` +
+      `TOTAL:           $${total.toFixed(2)}\n\n` +
+      `Quedo pendiente de confirmación.`;
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener,noreferrer");
+    onGuardar({
+      nombre: nombre.trim(),
+      fecha: fechaBonita(fecha),
+      hora,
+      personas,
+      tipo: `Navidad Opción ${opcion.id}`,
+      nota: `Navidad 2026 · Total $${total.toFixed(2)}`,
+      fuente: "cotizacion",
+    });
+  };
+
+  const descargarPDF = async () => {
+    if (!valido) return;
+    onEvento("navidad_pdf_cotizacion");
+    const hoy = new Date();
+    const fechaEmision = hoy.toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" });
+    const numero = `COT-NAV-${hoy.getFullYear()}${String(hoy.getMonth() + 1).padStart(2, "0")}${String(hoy.getDate()).padStart(2, "0")}-${String(hoy.getHours()).padStart(2, "0")}${String(hoy.getMinutes()).padStart(2, "0")}`;
+
+    const doc = new jsPDF();
+    try {
+      const logo = await cargarImagen("/atheneum-logo.jpg");
+      doc.addImage(logo, "JPEG", 14, 8, 20, 20);
+    } catch (e) {
+      console.error("No se pudo cargar el logo para el PDF:", e);
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(10, 22, 40);
+    doc.text("ATHENEUM", 38, 18);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120, 120, 120);
+    doc.text("Quito, Ecuador | IG @atheneum.uio | WEB www.clubatheneum.ec", 38, 24);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(10, 22, 40);
+    doc.text("COTIZACIÓN", 196, 18, { align: "right" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120, 120, 120);
+    doc.text(`No: ${numero}`, 196, 24, { align: "right" });
+    doc.text(`Fecha: ${fechaEmision}`, 196, 29, { align: "right" });
+    doc.setDrawColor(201, 169, 110);
+    doc.setLineWidth(0.8);
+    doc.line(14, 33, 196, 33);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(10, 22, 40);
+    doc.text("INFORMACIÓN DEL CLIENTE:", 14, 42);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(`Cliente: ${nombre.trim()}`, 14, 49);
+    doc.text(`Fecha del evento: ${fechaBonita(fecha)}`, 14, 55);
+    doc.text(`Hora: ${hora}`, 14, 61);
+
+    autoTable(doc, {
+      startY: 68,
+      head: [["ÍTEM", "DESCRIPCIÓN", "CANT.", "PRECIO UNIT.", "VALOR TOTAL"]],
+      body: [["1", `Navidad en Atheneum, Opción ${opcion.id}: ${opcion.titulo}`, String(personas), `$${opcion.precio.toFixed(2)}`, `$${subtotal.toFixed(2)}`]],
+      theme: "grid",
+      headStyles: { fillColor: [10, 22, 40], textColor: [255, 255, 255], fontSize: 9, fontStyle: "bold" },
+      bodyStyles: { fontSize: 9.5, textColor: [40, 40, 40], fontStyle: "bold", valign: "middle" },
+      columnStyles: { 0: { cellWidth: 14 }, 1: { cellWidth: 96 }, 2: { cellWidth: 16 }, 3: { cellWidth: 26 }, 4: { cellWidth: 26 } },
+    });
+
+    let y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 4;
+
+    // Detalle del menú
+    const lineas: { texto: string; header: boolean }[] = [];
+    lineasMenu(opcion).forEach((l) => {
+      if (l.endsWith(":")) {
+        lineas.push({ texto: l, header: true });
+      } else {
+        (doc.splitTextToSize(l, 168) as string[]).forEach((sub, i) => lineas.push({ texto: `${i === 0 ? "• " : "   "}${sub}`, header: false }));
+      }
+    });
+    const alto = 14 + lineas.reduce((a, l) => a + (l.header ? 5.5 : 5), 0) + 4;
+    if (y + alto > 275) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setDrawColor(230, 230, 230);
+    doc.setLineWidth(0.3);
+    doc.setDrawColor(201, 169, 110);
+    doc.rect(14, y, 182, alto);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(180, 148, 90);
+    doc.text("DETALLE DEL MENÚ", 18, y + 8);
+    let ty = y + 14;
+    lineas.forEach((l) => {
+      if (l.header) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.setTextColor(80, 80, 80);
+        doc.text(l.texto, 18, ty);
+        ty += 5.5;
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(90, 90, 90);
+        doc.text(l.texto, 22, ty);
+        ty += 5;
+      }
+    });
+    y += alto + 10;
+
+    // Totales y términos
+    if (y + 75 > 285) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Subtotal:", 150, y, { align: "right" });
+    doc.text(`$${subtotal.toFixed(2)}`, 196, y, { align: "right" });
+    doc.text("Servicio (10%):", 150, y + 6, { align: "right" });
+    doc.text(`$${servicio.toFixed(2)}`, 196, y + 6, { align: "right" });
+    doc.text("IMP (15%):", 150, y + 12, { align: "right" });
+    doc.text(`$${imp.toFixed(2)}`, 196, y + 12, { align: "right" });
+    doc.setDrawColor(201, 169, 110);
+    doc.setLineWidth(0.8);
+    doc.line(140, y + 16, 196, y + 16);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(10, 22, 40);
+    doc.text("TOTAL:", 150, y + 23, { align: "right" });
+    doc.text(`$${total.toFixed(2)}`, 196, y + 23, { align: "right" });
+
+    const termsY = y + 36;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(10, 22, 40);
+    doc.text("TÉRMINOS Y CONDICIONES:", 14, termsY);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const terminos = [
+      "1. Los precios están expresados en Dólares Americanos (USD).",
+      "2. Cualquier servicio o requerimiento no contemplado en esta cotización será facturado como adicional.",
+      "3. Forma de pago: 50% de anticipo y 50% previo al evento.",
+      "4. Incluye decoración navideña estándar. Consulte por el montaje especial de Navidad.",
+      "5. Las fechas de diciembre están sujetas a disponibilidad. Atheneum abre de lunes a viernes.",
+      ...(opcion.id === 2 ? ["6. Las opciones de entrada, plato fuerte, guarnición y postre se coordinan con el equipo."] : []),
+      "World Trade Center, Quito. Parqueadero disponible en el Swissôtel.",
+    ];
+    terminos.forEach((t, i) => doc.text(t, 14, termsY + 6 + i * 5));
+
+    doc.save(`${numero}.pdf`);
+  };
+
+  return (
+    <div style={{ width: "100vw", minHeight: "100vh", background: NAVY, overflowX: "hidden" }}>
+      <div style={{ maxWidth: "560px", margin: "0 auto", padding: "20px 20px 48px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "22px" }}>
+          <button
+            onClick={onVolver}
+            aria-label="Volver al menú"
+            style={{ width: "38px", height: "38px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(201,169,110,0.35)", color: CREAM, fontSize: "18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            ←
+          </button>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Copo size={12} />
+              <span style={{ ...etiqueta, marginBottom: 0 }}>Temporada navideña 2026</span>
+            </div>
+            <div style={{ color: CREAM, fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: 600, marginTop: "4px" }}>Cotizar tu evento</div>
+          </div>
+        </div>
+
+        <div style={etiqueta}>Menú</div>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+          {OPCIONES.map((o) => {
+            const activa = o.id === opcionId;
+            return (
+              <button
+                key={o.id}
+                onClick={() => setOpcionId(o.id)}
+                style={{
+                  flex: 1, padding: "12px 6px", borderRadius: "12px", cursor: "pointer", textAlign: "center",
+                  background: activa ? GOLD : "transparent",
+                  border: `1px solid ${activa ? GOLD : "rgba(201,169,110,0.35)"}`,
+                  color: activa ? NAVY : GOLD_SOFT, fontFamily: "sans-serif",
+                }}
+              >
+                <div style={{ fontSize: "10px", letterSpacing: "0.14em", fontWeight: 700 }}>OPCIÓN {o.id}</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", fontWeight: 700 }}>${o.precio}</div>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ color: "rgba(245,240,232,0.6)", fontSize: "12.5px", fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: "22px" }}>
+          {opcion.titulo}. {opcion.resumen}
+        </div>
+
+        <div style={etiqueta}>Nombre</div>
+        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre o el de tu empresa" style={{ ...campo, marginBottom: "20px" }} />
+
+        <div style={etiqueta}>Fecha del evento</div>
+        <input type="date" value={fecha} min={hoyISO()} max="2026-12-31" onChange={(e) => setFecha(e.target.value)} style={{ ...campo, marginBottom: finDeSemana ? "8px" : "20px" }} />
+        {finDeSemana && (
+          <div style={{ color: "#f0b27a", fontSize: "12.5px", fontFamily: "sans-serif", marginBottom: "20px" }}>
+            Atheneum abre de lunes a viernes. Elige un día de semana.
+          </div>
+        )}
+
+        <div style={etiqueta}>Hora</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "20px" }}>
+          {HORAS.map((h) => {
+            const activa = hora === h;
+            return (
+              <button
+                key={h}
+                onClick={() => setHora(h)}
+                style={{ padding: "10px 16px", borderRadius: "20px", cursor: "pointer", fontFamily: "sans-serif", fontSize: "13.5px", background: activa ? GOLD : "transparent", color: activa ? NAVY : CREAM, border: `1px solid ${activa ? GOLD : "rgba(201,169,110,0.35)"}`, fontWeight: activa ? 700 : 400 }}
+              >
+                {h}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "22px" }}>
+          <span style={{ color: "rgba(245,240,232,0.7)", fontSize: "13px", fontFamily: "sans-serif" }}>Número de invitados</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <button onClick={() => setPersonas((p) => Math.max(1, p - 1))} aria-label="Menos" style={{ width: "38px", height: "38px", borderRadius: "50%", border: "1px solid rgba(201,169,110,0.4)", background: "transparent", color: GOLD, fontSize: "20px", cursor: "pointer" }}>−</button>
+            <span style={{ color: CREAM, fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: 700, minWidth: "40px", textAlign: "center" }}>{personas}</span>
+            <button onClick={() => setPersonas((p) => Math.min(300, p + 1))} aria-label="Más" style={{ width: "38px", height: "38px", borderRadius: "50%", border: "1px solid rgba(201,169,110,0.4)", background: "transparent", color: GOLD, fontSize: "20px", cursor: "pointer" }}>+</button>
+          </div>
+        </div>
+
+        <div style={{ borderRadius: "16px", border: "1px solid rgba(201,169,110,0.35)", background: "rgba(201,169,110,0.06)", padding: "16px 18px", marginBottom: "18px" }}>
+          <div style={etiqueta}>Tu cotización</div>
+          <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>${opcion.precio} x {personas} personas</span><span>${subtotal.toFixed(2)}</span></div>
+          <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>Servicio (10%)</span><span>${servicio.toFixed(2)}</span></div>
+          <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>IMP (15%)</span><span>${imp.toFixed(2)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid rgba(201,169,110,0.3)", marginTop: "8px", paddingTop: "12px" }}>
+            <span style={{ color: GOLD, fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", fontFamily: "sans-serif" }}>TOTAL</span>
+            <span style={{ color: GOLD_SOFT, fontFamily: "Georgia, serif", fontSize: "30px", fontWeight: 700 }}>${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={descargarPDF}
+          disabled={!valido}
+          style={{ width: "100%", padding: "15px", borderRadius: "12px", marginBottom: "10px", background: valido ? GOLD : "rgba(201,169,110,0.25)", border: "none", color: NAVY, fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", cursor: valido ? "pointer" : "default", fontFamily: "sans-serif" }}
+        >
+          DESCARGAR COTIZACIÓN (PDF)
+        </button>
+        <button
+          onClick={confirmar}
+          disabled={!valido}
+          style={{ width: "100%", padding: "15px", borderRadius: "12px", background: valido ? "#25D366" : "rgba(37,211,102,0.25)", border: "none", color: "#06210f", fontSize: "14px", fontWeight: 700, cursor: valido ? "pointer" : "default", fontFamily: "sans-serif", letterSpacing: "0.04em" }}
+        >
+          Confirmar con el equipo por WhatsApp
+        </button>
+        {!valido && (
+          <div style={{ color: "rgba(245,240,232,0.45)", fontSize: "12px", fontFamily: "Georgia, serif", fontStyle: "italic", marginTop: "12px", textAlign: "center" }}>
+            Completa tu nombre, la fecha y la hora para descargar o confirmar.
+          </div>
+        )}
+        <div style={{ color: "rgba(245,240,232,0.35)", fontSize: "11px", fontFamily: "sans-serif", marginTop: "18px", textAlign: "center", lineHeight: 1.5 }}>
+          Valores por persona, más servicio e impuestos. Las fechas de diciembre están sujetas a disponibilidad.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type Props = {
   onVolver: () => void;
   onEvento: (evento: string) => void;
+  onGuardar: (datos: GuardarDatos) => void;
 };
 
-export default function NavidadMenu({ onVolver, onEvento }: Props) {
+export default function NavidadMenu({ onVolver, onEvento, onGuardar }: Props) {
   const [abierta, setAbierta] = useState<number | null>(null);
   const [elegida, setElegida] = useState<number | null>(null);
   const [personas, setPersonas] = useState<number>(10);
+  const [cotizando, setCotizando] = useState<number | null>(null);
 
   useEffect(() => {
     onEvento("navidad_vista");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const abrirCotizar = (id: number) => {
+    setElegida(id);
+    onEvento("navidad_cotizar");
+    setCotizando(id);
+  };
+
+  if (cotizando !== null) {
+    return (
+      <CotizarNavidad
+        opcionInicial={cotizando}
+        personasInicial={personas}
+        onVolver={() => setCotizando(null)}
+        onEvento={onEvento}
+        onGuardar={onGuardar}
+      />
+    );
+  }
 
   const opcionElegida = OPCIONES.find((o) => o.id === elegida) || null;
   const total = opcionElegida ? opcionElegida.precio * personas : 0;
@@ -278,6 +688,12 @@ export default function NavidadMenu({ onVolver, onEvento }: Props) {
                           </div>
                         </div>
                       ))}
+                      <button
+                        onClick={() => abrirCotizar(o.id)}
+                        style={{ width: "100%", marginTop: "20px", padding: "14px", borderRadius: "12px", background: GOLD, border: "none", color: NAVY, fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", cursor: "pointer", fontFamily: "sans-serif" }}
+                      >
+                        COTIZAR LA OPCIÓN {o.id}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -342,12 +758,26 @@ export default function NavidadMenu({ onVolver, onEvento }: Props) {
               )}
 
               <button
+                onClick={() => opcionElegida && abrirCotizar(opcionElegida.id)}
+                disabled={!opcionElegida}
+                style={{
+                  width: "100%", background: opcionElegida ? GOLD : "rgba(201,169,110,0.25)",
+                  color: NAVY, border: "none", borderRadius: "12px", padding: "15px",
+                  fontSize: "13px", fontWeight: 700, cursor: opcionElegida ? "pointer" : "default",
+                  fontFamily: "sans-serif", letterSpacing: "0.1em", marginBottom: "10px",
+                }}
+              >
+                COTIZAR MI EVENTO
+              </button>
+              <button
                 onClick={abrirWhatsApp}
                 disabled={!opcionElegida}
                 style={{
-                  width: "100%", background: opcionElegida ? "#25D366" : "rgba(37,211,102,0.25)",
-                  color: "#06210f", border: "none", borderRadius: "12px", padding: "15px",
-                  fontSize: "14px", fontWeight: 700, cursor: opcionElegida ? "pointer" : "default",
+                  width: "100%", background: "transparent",
+                  color: opcionElegida ? "#4ade80" : "rgba(74,222,128,0.35)",
+                  border: `1px solid ${opcionElegida ? "rgba(37,211,102,0.5)" : "rgba(37,211,102,0.2)"}`,
+                  borderRadius: "12px", padding: "14px",
+                  fontSize: "13.5px", fontWeight: 700, cursor: opcionElegida ? "pointer" : "default",
                   fontFamily: "sans-serif", letterSpacing: "0.04em",
                 }}
               >

@@ -1407,7 +1407,7 @@ export default function AthenaChat() {
     );
   }
   if (pantalla === "navidad") {
-    return <NavidadMenu onVolver={() => setPantalla("inicio")} onEvento={(ev) => registrarEvento(conversacionId, ev)} />;
+    return <NavidadMenu onVolver={() => setPantalla("inicio")} onEvento={(ev) => registrarEvento(conversacionId, ev)} onGuardar={(d) => guardarReserva({ conversacionId, ...d })} />;
   }
   if (pantalla === "galeria") {
     return (
