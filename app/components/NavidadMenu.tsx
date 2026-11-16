@@ -391,12 +391,10 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
     doc.setTextColor(100, 100, 100);
     const terminos = [
       "1. Los precios están expresados en Dólares Americanos (USD).",
-      "2. Cualquier servicio o requerimiento no contemplado en esta cotización será facturado como adicional.",
-      "3. Forma de pago: 50% de anticipo y 50% previo al evento.",
-      "4. Incluye decoración navideña estándar. Consulte por el montaje especial de Navidad.",
-      "5. Las fechas de diciembre están sujetas a disponibilidad. Atheneum abre de lunes a viernes.",
-      ...(opcion.id === 2 ? ["6. Las opciones de entrada, plato fuerte, guarnición y postre se coordinan con el equipo."] : []),
-      "World Trade Center, Quito. Parqueadero disponible en el Swissôtel.",
+      "2. Incluye decoración navideña estándar. Consulte por el montaje especial de Navidad.",
+      "3. Las fechas de diciembre están sujetas a disponibilidad. Atheneum abre de lunes a viernes.",
+      ...(opcion.id === 2 ? ["4. Las opciones de entrada, plato fuerte, guarnición y postre se coordinan con el equipo."] : []),
+      "World Trade Center, Quito.",
     ];
     terminos.forEach((t, i) => doc.text(t, 14, termsY + 6 + i * 5));
 
