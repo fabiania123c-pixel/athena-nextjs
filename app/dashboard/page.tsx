@@ -373,11 +373,18 @@ export default function Dashboard() {
   const pctReservaRapida = totalAperturas > 0 ? Math.round((totalReservaRapida / totalAperturas) * 100) : 0;
   const pctCotizacion = totalAperturas > 0 ? Math.round((totalCotizacion / totalAperturas) * 100) : 0;
   const pctMasInfo = totalAperturas > 0 ? Math.round((totalMasInfo / totalAperturas) * 100) : 0;
+  const totalGaleria = funnelEvents.filter(e => e.evento === "galeria").length;
+  const totalNavidad = funnelEvents.filter(e => e.evento === "navidad").length;
+  const totalNavidadCotizar = funnelEvents.filter(e => e.evento === "navidad_cotizar").length;
+  const pctGaleria = totalAperturas > 0 ? Math.round((totalGaleria / totalAperturas) * 100) : 0;
+  const pctNavidad = totalAperturas > 0 ? Math.round((totalNavidad / totalAperturas) * 100) : 0;
   const funnelChart = [
     { name: "Abrieron Athena", value: totalAperturas, color: GOLD },
     { name: "Reserva Rápida", value: totalReservaRapida, color: "#4ade80" },
     { name: "Cotización", value: totalCotizacion, color: "#60a5fa" },
     { name: "Más Info", value: totalMasInfo, color: "#c084fc" },
+    { name: "Conoce el lugar", value: totalGaleria, color: "#fb923c" },
+    { name: "Navidad", value: totalNavidad, color: "#f87171" },
   ];
 
   // Reservas
@@ -1225,6 +1232,8 @@ export default function Dashboard() {
                 { label: "Reserva Rápida", value: totalReservaRapida, sub: `${pctReservaRapida}% de las aperturas`, color: "#4ade80" },
                 { label: "Cotización", value: totalCotizacion, sub: `${pctCotizacion}% de las aperturas`, color: "#60a5fa" },
                 { label: "Más Información", value: totalMasInfo, sub: `${pctMasInfo}% de las aperturas`, color: "#c084fc" },
+                { label: "Conoce el lugar", value: totalGaleria, sub: `${pctGaleria}% de las aperturas`, color: "#fb923c" },
+                { label: "Navidad", value: totalNavidad, sub: `${pctNavidad}% de las aperturas · ${totalNavidadCotizar} pidieron cotizar`, color: "#f87171" },
               ].map((kpi, idx) => (
                 <div key={idx} style={{
                   background: NAVY, border: "1px solid rgba(201,169,110,0.15)",
@@ -1251,7 +1260,7 @@ export default function Dashboard() {
                         <span style={{ color: item.color, fontSize: "13px", fontWeight: "700" }}>{item.value} ({pct}%)</span>
                       </div>
                       <div style={{ height: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "6px", overflow: "hidden" }}>
-                        <div style={{ width: `${pct}%`, height: "100%", background: item.color, borderRadius: "6px", transition: "width 0.6s ease" }} />
+                        <div style={{ width: `${Math.min(pct, 100)}%`, height: "100%", background: item.color, borderRadius: "6px", transition: "width 0.6s ease" }} />
                       </div>
                     </div>
                   );
