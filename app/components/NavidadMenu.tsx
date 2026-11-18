@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -145,12 +145,23 @@ function fechaBonita(iso: string): string {
   return new Date(y, m - 1, d).toLocaleDateString("es-EC", { weekday: "long", day: "numeric", month: "long" });
 }
 
-function esFinDeSemana(iso: string): boolean {
-  const [y, m, d] = iso.split("-").map(Number);
-  if (!y || !m || !d) return false;
-  const dia = new Date(y, m - 1, d).getDay();
-  return dia === 0 || dia === 6;
-}
+type Adicional = {
+  id: string;
+  titulo: string;
+  detalle: string;
+  precio: number;
+  unidad: "persona" | "botella";
+  grupo?: string;
+};
+
+const ADICIONALES: Adicional[] = [
+  { id: "welcome", titulo: "Welcome drink", detalle: "Copa de recibimiento para cada invitado: Cava Española o Mocktail", precio: 7, unidad: "persona" },
+  { id: "copa-vino", titulo: "Copa de vino adicional", detalle: "Blanco o tinto de la casa", precio: 5, unidad: "persona" },
+  { id: "soft", titulo: "Paquete de bebidas soft ilimitadas", detalle: "Agua natural, agua mineral, gaseosa, café americano e infusiones", precio: 5, unidad: "persona" },
+  { id: "barra2", titulo: "Barra libre Atheneum · 2 cócteles", detalle: "Coctelería ilimitada por 4 horas: Mojito y Paloma", precio: 15, unidad: "persona", grupo: "barra" },
+  { id: "barra3", titulo: "Barra libre Atheneum · 3 cócteles", detalle: "Coctelería ilimitada por 4 horas: Moscow Mule, Margarita y Mojito", precio: 22, unidad: "persona", grupo: "barra" },
+  { id: "vino-botella", titulo: "Vino de la casa", detalle: "Nuestra selección de espumante, blanco o tinto", precio: 25, unidad: "botella" },
+];
 
 function hoyISO(): string {
   const h = new Date();
@@ -204,19 +215,64 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
   const [nombre, setNombre] = useState("");
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
+  // Adicionales elegidos: la clave existe = elegido; null = cantidad automática (todos los invitados / 1 botella)
+  const [sel, setSel] = useState<Record<string, number | null>>({});
+
+  const resumenRef = useRef<HTMLDivElement | null>(null);
+  const [resumenVisible, setResumenVisible] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  useEffect(() => {
+    const el = resumenRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(([entry]) => setResumenVisible(entry.isIntersecting), { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const cantDe =(a: Adicional): number => {
+    if (!(a.id in sel)) return 0;
+    const v = sel[a.id];
+    return v ?? (a.unidad === "persona" ? personas : 1);
+  };
+
+  const alternar = (a: Adicional) => {
+    const activo = a.id in sel;
+    if (!activo) onEvento("navidad_adicional");
+    setSel((prev) => {
+      const n = { ...prev };
+      if (activo) {
+        delete n[a.id];
+      } else {
+        if (a.grupo) ADICIONALES.filter((x) => x.grupo === a.grupo && x.id !== a.id).forEach((x) => delete n[x.id]);
+        n[a.id] = null;
+      }
+      return n;
+    });
+  };
+
+  const cambiarCant = (a: Adicional, delta: number) => {
+    const tope = a.unidad === "persona" ? 300 : 99;
+    const nueva = Math.min(tope, Math.max(1, cantDe(a) + delta));
+    setSel((prev) => ({ ...prev, [a.id]: nueva }));
+  };
+
   const opcion = OPCIONES.find((o) => o.id === opcionId) || OPCIONES[0];
-  const subtotal = redondear(opcion.precio * personas);
+  const subtotalMenu = redondear(opcion.precio * personas);
+  const seleccionados = ADICIONALES.filter((a) => a.id in sel).map((a) => {
+    const cant = cantDe(a);
+    return { a, cant, total: redondear(a.precio * cant) };
+  });
+  const subtotalAdic = redondear(seleccionados.reduce((s, x) => s + x.total, 0));
+  const subtotal = redondear(subtotalMenu + subtotalAdic);
   const servicio = redondear(subtotal * SERVICIO);
   const imp = redondear((subtotal + servicio) * IMP);
   const total = redondear(subtotal + servicio + imp);
 
-  const finDeSemana = !!fecha && esFinDeSemana(fecha);
-  const valido = nombre.trim().length > 1 && !!fecha && !finDeSemana && !!hora;
+  const valido = nombre.trim().length > 1 && !!fecha && !!hora;
 
   const etiqueta: React.CSSProperties = {
     color: GOLD, fontSize: "10.5px", letterSpacing: "0.2em", fontWeight: 700,
@@ -239,8 +295,9 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
       `Hora: ${hora}\n\n` +
       `Tipo: Navidad, Opción ${opcion.id} · ${opcion.titulo}\n` +
       `———————————————\n` +
-      `Precio/persona:  $${opcion.precio}\n` +
       `Personas:        ${personas}\n` +
+      `Menú (${personas} x $${opcion.precio}): $${subtotalMenu.toFixed(2)}\n` +
+      seleccionados.map((s) => `+ ${s.a.titulo} (${s.cant} x $${s.a.precio}): $${s.total.toFixed(2)}\n`).join("") +
       `Subtotal:        $${subtotal.toFixed(2)}\n` +
       `Servicio (10%):  $${servicio.toFixed(2)}\n` +
       `IMP (15%):       $${imp.toFixed(2)}\n` +
@@ -254,7 +311,7 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
       hora,
       personas,
       tipo: `Navidad Opción ${opcion.id}`,
-      nota: `Navidad 2026 · Total $${total.toFixed(2)}`,
+      nota: `Navidad 2026 · Total $${total.toFixed(2)}` + (seleccionados.length ? ` · Adicionales: ${seleccionados.map((s) => `${s.a.titulo} x${s.cant}`).join(", ")}` : ""),
       fuente: "cotizacion",
     });
   };
@@ -309,7 +366,10 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
     autoTable(doc, {
       startY: 68,
       head: [["ÍTEM", "DESCRIPCIÓN", "CANT.", "PRECIO UNIT.", "VALOR TOTAL"]],
-      body: [["1", `Navidad en Atheneum, Opción ${opcion.id}: ${opcion.titulo}`, String(personas), `$${opcion.precio.toFixed(2)}`, `$${subtotal.toFixed(2)}`]],
+      body: [
+        ["1", `Navidad en Atheneum, Opción ${opcion.id}: ${opcion.titulo}`, String(personas), `$${opcion.precio.toFixed(2)}`, `$${subtotalMenu.toFixed(2)}`],
+        ...seleccionados.map((s, i) => [String(i + 2), `${s.a.titulo} (por ${s.a.unidad})`, String(s.cant), `$${s.a.precio.toFixed(2)}`, `$${s.total.toFixed(2)}`]),
+      ],
       theme: "grid",
       headStyles: { fillColor: [10, 22, 40], textColor: [255, 255, 255], fontSize: 9, fontStyle: "bold" },
       bodyStyles: { fontSize: 9.5, textColor: [40, 40, 40], fontStyle: "bold", valign: "middle" },
@@ -392,7 +452,7 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
     const terminos = [
       "1. Los precios están expresados en Dólares Americanos (USD).",
       "2. Incluye decoración navideña estándar. Consulte por el montaje especial de Navidad.",
-      "3. Las fechas de diciembre están sujetas a disponibilidad. Atheneum abre de lunes a viernes.",
+      "3. Las fechas de diciembre están sujetas a disponibilidad.",
       ...(opcion.id === 2 ? ["4. Las opciones de entrada, plato fuerte, guarnición y postre se coordinan con el equipo."] : []),
       "World Trade Center, Quito.",
     ];
@@ -403,7 +463,7 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
 
   return (
     <div style={{ width: "100vw", minHeight: "100vh", background: NAVY, overflowX: "hidden" }}>
-      <div style={{ maxWidth: "560px", margin: "0 auto", padding: "20px 20px 48px" }}>
+      <div style={{ maxWidth: "560px", margin: "0 auto", padding: `20px 20px ${seleccionados.length > 0 ? 96 : 48}px` }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "22px" }}>
           <button
             onClick={onVolver}
@@ -450,12 +510,7 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
         <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre o el de tu empresa" style={{ ...campo, marginBottom: "20px" }} />
 
         <div style={etiqueta}>Fecha del evento</div>
-        <input type="date" value={fecha} min={hoyISO()} max="2026-12-31" onChange={(e) => setFecha(e.target.value)} style={{ ...campo, marginBottom: finDeSemana ? "8px" : "20px" }} />
-        {finDeSemana && (
-          <div style={{ color: "#f0b27a", fontSize: "12.5px", fontFamily: "sans-serif", marginBottom: "20px" }}>
-            Atheneum abre de lunes a viernes. Elige un día de semana.
-          </div>
-        )}
+        <input type="date" value={fecha} min={hoyISO()} max="2026-12-31" onChange={(e) => setFecha(e.target.value)} style={{ ...campo, marginBottom: "20px" }} />
 
         <div style={etiqueta}>Hora</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "20px" }}>
@@ -482,9 +537,73 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
           </div>
         </div>
 
-        <div style={{ borderRadius: "16px", border: "1px solid rgba(201,169,110,0.35)", background: "rgba(201,169,110,0.06)", padding: "16px 18px", marginBottom: "18px" }}>
+        <div style={etiqueta}>Adicionales (opcional)</div>
+        <div style={{ color: "rgba(245,240,232,0.6)", fontSize: "12.5px", fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: "12px", lineHeight: 1.5 }}>
+          Complemente su celebración con los servicios que mejor acompañen a su grupo. Se suman al total de su cotización.
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "8px" }}>
+          {ADICIONALES.map((a) => {
+            const activo = a.id in sel;
+            const cant = cantDe(a);
+            return (
+              <div
+                key={a.id}
+                style={{
+                  borderRadius: "14px", overflow: "hidden",
+                  border: `1px solid ${activo ? GOLD : "rgba(201,169,110,0.3)"}`,
+                  background: activo ? "rgba(201,169,110,0.10)" : "rgba(255,255,255,0.03)",
+                }}
+              >
+                <button
+                  onClick={() => alternar(a)}
+                  aria-pressed={activo}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: "12px", padding: "14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
+                >
+                  <span style={{ width: "22px", height: "22px", borderRadius: "50%", flexShrink: 0, border: `1.5px solid ${activo ? GOLD : "rgba(201,169,110,0.5)"}`, background: activo ? GOLD : "transparent", color: NAVY, fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {activo ? "✓" : ""}
+                  </span>
+                  <span style={{ flex: 1 }}>
+                    <span style={{ display: "block", color: CREAM, fontFamily: "Georgia, serif", fontSize: "15.5px", fontWeight: 600 }}>{a.titulo}</span>
+                    <span style={{ display: "block", color: "rgba(245,240,232,0.55)", fontFamily: "sans-serif", fontSize: "12px", marginTop: "3px", lineHeight: 1.4 }}>{a.detalle}</span>
+                  </span>
+                  <span style={{ textAlign: "right", flexShrink: 0 }}>
+                    <span style={{ display: "block", color: GOLD_SOFT, fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: 700 }}>${a.precio}</span>
+                    <span style={{ display: "block", color: "rgba(245,240,232,0.5)", fontFamily: "sans-serif", fontSize: "10.5px" }}>por {a.unidad}</span>
+                  </span>
+                </button>
+                {activo && (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", padding: "10px 14px 12px", borderTop: "1px solid rgba(201,169,110,0.25)" }}>
+                    <span style={{ color: "rgba(245,240,232,0.7)", fontFamily: "sans-serif", fontSize: "12.5px" }}>
+                      {a.unidad === "persona" ? "Para cuántos invitados" : "Cantidad de botellas"}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <button onClick={() => cambiarCant(a, -1)} aria-label="Menos" style={{ width: "30px", height: "30px", borderRadius: "50%", border: "1px solid rgba(201,169,110,0.4)", background: "transparent", color: GOLD, fontSize: "17px", cursor: "pointer" }}>−</button>
+                      <span style={{ color: CREAM, fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: 700, minWidth: "30px", textAlign: "center" }}>{cant}</span>
+                      <button onClick={() => cambiarCant(a, 1)} aria-label="Más" style={{ width: "30px", height: "30px", borderRadius: "50%", border: "1px solid rgba(201,169,110,0.4)", background: "transparent", color: GOLD, fontSize: "17px", cursor: "pointer" }}>+</button>
+                    </div>
+                    <span style={{ color: GOLD_SOFT, fontFamily: "Georgia, serif", fontSize: "16px", fontWeight: 700, minWidth: "64px", textAlign: "right" }}>${(a.precio * cant).toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ color: "rgba(245,240,232,0.4)", fontSize: "11.5px", fontFamily: "sans-serif", marginBottom: "22px", lineHeight: 1.5 }}>
+          La barra libre es una sola por evento: elige la de 2 o la de 3 cócteles.
+        </div>
+
+        <div ref={resumenRef} style={{ borderRadius: "16px", border: "1px solid rgba(201,169,110,0.35)", background: "rgba(201,169,110,0.06)", padding: "16px 18px", marginBottom: "18px" }}>
           <div style={etiqueta}>Tu cotización</div>
-          <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>${opcion.precio} x {personas} personas</span><span>${subtotal.toFixed(2)}</span></div>
+          <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>Menú: ${opcion.precio} x {personas} personas</span><span>${subtotalMenu.toFixed(2)}</span></div>
+          {seleccionados.map((s) => (
+            <div key={s.a.id} style={{ ...fila, color: "rgba(245,240,232,0.7)", gap: "12px" }}>
+              <span>{s.a.titulo}: ${s.a.precio} x {s.cant}</span>
+              <span style={{ flexShrink: 0 }}>${s.total.toFixed(2)}</span>
+            </div>
+          ))}
+          {seleccionados.length > 0 && (
+            <div style={{ ...fila, color: CREAM, borderTop: "1px solid rgba(201,169,110,0.2)", marginTop: "4px", paddingTop: "8px" }}><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+          )}
           <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>Servicio (10%)</span><span>${servicio.toFixed(2)}</span></div>
           <div style={{ ...fila, color: "rgba(245,240,232,0.7)" }}><span>IMP (15%)</span><span>${imp.toFixed(2)}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid rgba(201,169,110,0.3)", marginTop: "8px", paddingTop: "12px" }}>
@@ -516,6 +635,24 @@ function CotizarNavidad({ opcionInicial, personasInicial, onVolver, onEvento, on
           Valores por persona, más servicio e impuestos. Las fechas de diciembre están sujetas a disponibilidad.
         </div>
       </div>
+
+      {seleccionados.length > 0 && !resumenVisible && (
+        <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 50, padding: "10px 16px calc(10px + env(safe-area-inset-bottom))", background: "rgba(10,22,40,0.96)", borderTop: "1px solid rgba(201,169,110,0.4)", backdropFilter: "blur(8px)" }}>
+          <button
+            onClick={() => resumenRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
+            aria-label="Ver resumen de la cotización"
+            style={{ maxWidth: "528px", margin: "0 auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "transparent", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}
+          >
+            <span>
+              <span style={{ display: "block", color: "rgba(245,240,232,0.6)", fontFamily: "sans-serif", fontSize: "11px", letterSpacing: "0.08em" }}>
+                TOTAL · {seleccionados.length} {seleccionados.length === 1 ? "ADICIONAL" : "ADICIONALES"}
+              </span>
+              <span style={{ display: "block", color: GOLD_SOFT, fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: 700 }}>${total.toFixed(2)}</span>
+            </span>
+            <span style={{ color: NAVY, background: GOLD, borderRadius: "20px", padding: "10px 16px", fontFamily: "sans-serif", fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em" }}>VER RESUMEN ↓</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -729,7 +866,7 @@ export default function NavidadMenu({ onVolver, onEvento, onGuardar }: Props) {
               <div style={{ ...etiquetaSeccion, marginBottom: "6px" }}>Diciembre 2026</div>
               <div style={{ color: CREAM, fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: 600, marginBottom: "8px" }}>Reserve su fecha navideña</div>
               <div style={{ color: "rgba(245,240,232,0.6)", fontSize: "12.5px", fontFamily: "sans-serif", lineHeight: 1.55, marginBottom: "16px" }}>
-                Atheneum abre de lunes a viernes, por eso las fechas de diciembre son pocas y exclusivas. Cuéntenos su número de invitados y le preparamos su propuesta.
+                Las fechas de diciembre están sujetas a disponibilidad. Cuéntenos su número de invitados y le preparamos su propuesta.
               </div>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
